@@ -33,7 +33,7 @@ app.register_blueprint(auth_bp, url_prefix='/auth')
 # -----------------------------
 @app.route("/", methods=["GET"])
 def home():
-    return jsonify({"status": "Flask backend running 🚀"})
+    return jsonify({"status": "Flask backend running "})
 
 # -----------------------------
 # Backtest Route — UNCHANGED
