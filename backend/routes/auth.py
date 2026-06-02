@@ -35,16 +35,16 @@ def signup():
 def login():
     data = request.get_json()
 
-    if not data or not data.get('name') or not data.get('password'):
-        return jsonify({'error': 'name and password are required'}), 400
+    if not data or not data.get('email') or not data.get('password'):
+        return jsonify({'error': 'email and password are required'}), 400
 
-    user = User.query.filter_by(name=data['name'].strip()).first()
+    # find user by email instead of name
+    user = User.query.filter_by(email=data['email'].strip().lower()).first()
 
     if not user or not bcrypt.check_password_hash(user.password_hash, data['password']):
         return jsonify({'error': 'Invalid credentials'}), 401
 
     token = create_access_token(identity=str(user.id))
-
     return jsonify({
         'access_token': token,
         'name': user.name

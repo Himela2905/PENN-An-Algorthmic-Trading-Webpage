@@ -1,4 +1,5 @@
-import pandas as pd # type: ignore
+import pandas as pd
+import numpy as np
 
 
 class Backtester:
@@ -6,34 +7,78 @@ class Backtester:
         if initial_balance is None:
             initial_balance = 10000
 
-        self.df = df
+        self.df              = df.copy()
         self.initial_balance = initial_balance
-        self.balance = initial_balance
-        self.position = 0
-        self.trades = []
-        self.portfolio_value = initial_balance
+        self.balance         = initial_balance
+        self.position        = 0
+        self.trades          = []
 
     def run(self):
+        # clean data
+        self.df = self.df.dropna(subset=['close'])
+
         if self.df.empty:
-            print("⚠️ No data available for backtest.")
-            return self.balance, self.trades   # return initial state safely
-        
+            return self.initial_balance, [], 0, 0
+
+        # reset
+        self.balance  = self.initial_balance
+        self.position = 0
+        self.trades   = []
+
         for i, row in self.df.iterrows():
-            signal=int(row.at["signal"])
-            price=float(row.at["close"])
+            try:
+                raw_signal = row.at["signal"]
+                if pd.isna(raw_signal):
+                    continue
+                signal = int(raw_signal)
+                price  = float(row.at["close"])
 
-            if signal == 1 and self.position == 0:
-                #buy
-                self.position = self.balance / price
-                self.balance = 0
-                self.trades.append(("BUY", price, i))
+                if pd.isna(price) or price <= 0:
+                    continue
 
-            elif signal == -1 and self.position > 0:
-                #Sell
-                self.balance = self.position * price
-                self.position = 0
-                self.trades.append(("SELL", price , i))
+                if signal == 1 and self.position == 0:
+                    self.position = self.balance / price
+                    self.balance  = 0
+                    self.trades.append(("BUY", price, i))
 
-        # Final portfolio value
-        final_value = self.balance + (self.position * float(self.df.iloc[-1]["close"]))
-        return final_value, self.trades
+                elif signal == -1 and self.position > 0:
+                    self.balance  = self.position * price
+                    self.position = 0
+                    self.trades.append(("SELL", price, i))
+
+            except Exception:
+                continue
+
+        # close open position at end
+        final_price = float(self.df.iloc[-1]["close"])
+        if self.position > 0:
+            self.balance  = self.position * final_price
+            self.position = 0
+            self.trades.append(("SELL", final_price, self.df.index[-1]))
+
+        final_value = self.balance
+
+        if final_value <= 0:
+            final_value = self.initial_balance
+
+        # win ratio
+        buy_prices  = [p for a, p, _ in self.trades if a == "BUY"]
+        sell_prices = [p for a, p, _ in self.trades if a == "SELL"]
+        pairs       = list(zip(buy_prices, sell_prices))
+        wins        = sum(1 for b, s in pairs if s > b)
+        win_ratio   = round((wins / len(pairs) * 100), 1) if pairs else 0
+
+        # max drawdown
+        peak     = self.initial_balance
+        drawdown = 0
+        running  = self.initial_balance
+        for action, price, _ in self.trades:
+            if action == "SELL":
+                running  = running + (price - (running / (running / price)))
+                peak     = max(peak, running)
+                dd       = (running - peak) / peak * 100
+                drawdown = min(drawdown, dd)
+
+        print(f"Trades executed: {len(self.trades)}, Final: {final_value}, WinRatio: {win_ratio}")
+
+        return round(final_value, 2), self.trades, win_ratio, round(drawdown, 2)

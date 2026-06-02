@@ -38,71 +38,103 @@ def home():
     return jsonify({"status": "Flask backend running "})
 
 # -----------------------------
-# Backtest Route — UNCHANGED
+# Backtest Route 
 # -----------------------------
 @app.route("/backtest", methods=["POST"])
-@jwt_required() 
+@jwt_required()
 def run_backtest():
-    current_user_id = get_jwt_identity()
-    data = request.json
-    symbol           = data.get("symbol")
-    strategy_name    = data.get("strategy")
-    period           = data.get("period", "1y")
-    interval         = data.get("interval", "1d")
-    initial_balance  = float(data.get("initial_balance", 10000))
+    try:
+        current_user_id = get_jwt_identity()
+        data            = request.json
 
-    if not symbol:
-        return jsonify({"error": "Symbol is required"}), 400
+        symbol          = data.get("symbol", "").strip().upper()
+        strategy_name   = data.get("strategy", "")
+        period          = data.get("period", "2y")
+        interval        = data.get("interval", "1d")
+        initial_balance = float(data.get("initial_balance", 10000))
 
-    df = fetch_from_yf(symbol, period, interval)
+        if not symbol:
+            return jsonify({"error": "Symbol is required"}), 400
 
-    if df.empty:
-        return jsonify({"error": "No data found"}), 400
+        df = fetch_from_yf(symbol, period, interval)
 
-    if isinstance(df.columns, pd.MultiIndex):
-        df.columns = df.columns.get_level_values(0)
+        if df.empty:
+            return jsonify({"error": "No data found for " + symbol}), 400
 
-    df.columns = df.columns.str.lower()
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.get_level_values(0)
+        df.columns = df.columns.str.lower()
 
-    if strategy_name == "Golden Cross":
-        strategy = GoldenCross(df, long_period=200, short_period=50)
-    elif strategy_name == "RSI":
-        strategy = RSI_Strategy(df, period=14)
-    else:
-        return jsonify({"error": "Invalid strategy"}), 400
+        if strategy_name == "Golden Cross":
+            strategy = GoldenCross(df, long_period=50, short_period=20)
+        elif strategy_name == "RSI":
+            strategy = RSI_Strategy(df, period=14)
+        else:
+            return jsonify({"error": "Invalid strategy: " + strategy_name}), 400
 
-    df = strategy.generate_signals()
+        df = strategy.generate_signals()
 
-    backtester = Backtester(df, initial_balance=initial_balance)
-    final_value, trades = backtester.run()
+        backtester                                   = Backtester(df, initial_balance=initial_balance)
+        final_value, trades, win_ratio, max_drawdown = backtester.run()
 
-    trade_list = []
-    for action, price, date in trades:
-        trade_list.append({
-            "action": action,
-            "price": float(price),
-            "date": str(date)
+        trade_list = []
+        buy_count  = 0
+        sell_count = 0
+        for action, price, date in trades:
+            trade_list.append({
+                "action": action,
+                "price":  round(float(price), 2),
+                "date":   str(date)
+            })
+            if action == "BUY":
+                buy_count += 1
+            else:
+                sell_count += 1
+
+        # equity curve
+        equity_curve = []
+        bal          = initial_balance
+        pos          = 0
+        for i, row in df.iterrows():
+            try:
+                sig   = int(row["signal"]) if not pd.isna(row["signal"]) else 0
+                price = float(row["close"])
+                if sig == 1 and pos == 0:
+                    pos = bal / price
+                    bal = 0
+                elif sig == -1 and pos > 0:
+                    bal = pos * price
+                    pos = 0
+                equity_curve.append({
+                    "date":  str(i),
+                    "value": round(bal + pos * price, 2)
+                })
+            except Exception:
+                continue
+
+        profit_loss = round(final_value - initial_balance, 2)
+        profit_pct  = round((profit_loss / initial_balance) * 100, 2)
+
+        return jsonify({
+            "symbol":          symbol,
+            "strategy":        strategy_name,
+            "initial_balance": initial_balance,
+            "final_value":     final_value,
+            "profit_loss":     profit_loss,
+            "profit_percent":  profit_pct,
+            "total_trades":    len(trades),
+            "buy_trades":      buy_count,
+            "sell_trades":     sell_count,
+            "win_ratio":       win_ratio,
+            "max_drawdown":    max_drawdown,
+            "trades":          trade_list,
+            "equity_curve":    equity_curve
         })
 
-    chart_data   = df.reset_index().to_dict(orient="records")
-    profit_loss  = final_value - initial_balance
-    profit_pct   = (profit_loss / initial_balance) * 100
-
-    return jsonify({
-        "symbol":          symbol,
-        "strategy":        strategy_name,
-        "initial_balance": initial_balance,
-        "final_value":     float(final_value),
-        "profit_loss":     float(profit_loss),
-        "profit_percent":  float(profit_pct),
-        "total_trades":    len(trades),
-        "trades":          trade_list,
-        "chart_data":      chart_data
-    })
-
-@app.route("/db-test")
-def db_test():
-    return "Database Connected!"
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)
