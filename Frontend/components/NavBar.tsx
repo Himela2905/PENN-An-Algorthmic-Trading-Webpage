@@ -5,7 +5,7 @@ export default function NavBar() {
       <h1 className="text-xl font-bold">Penn</h1>
 
       <div className="space-x-6 hidden md:block">
-        <a href="#" className="hover:text-gray-400">BackTracking</a>
+        <Link href="/Backtest" className="hover:text-gray-400">BackTest</Link>
         <a href="#" className="hover:text-gray-400">Live Trading</a>
         <Link href="/About" className="hover:text-gray-400">About</Link>
       </div>
