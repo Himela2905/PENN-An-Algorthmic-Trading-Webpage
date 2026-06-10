@@ -19,6 +19,12 @@ export const removeToken = () => {
     localStorage.removeItem("access_token");
   }
 };
+
+export const isLoggedIn = (): boolean => {
+  if (typeof window === "undefined") return false;
+  const token = localStorage.getItem("access_token");
+  return !!token;
+};
 // ─── Auth ───────────────────────────────────────
 
 export const loginUser = async (email: string, password: string) => {

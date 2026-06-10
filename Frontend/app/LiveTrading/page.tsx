@@ -1,7 +1,9 @@
 import Link from "next/link";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function TradingTerminal() {
   return (
+    <ProtectedRoute>
     <div className="bg-[#0b0e11] text-white min-h-screen flex overflow-hidden">
 
       {/* SIDEBAR */}
@@ -429,5 +431,6 @@ export default function TradingTerminal() {
       </main>
 
     </div>
+    </ProtectedRoute>
   );
 }

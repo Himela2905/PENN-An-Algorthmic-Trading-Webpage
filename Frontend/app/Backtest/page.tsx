@@ -6,6 +6,7 @@ import BacktestChart   from "@/components/BacktestChart";
 import BacktestStats   from "@/components/BacktestStats";
 import TradeHistory    from "@/components/TradeHistory";
 import { runBacktest } from "@/lib/api";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 interface BacktestResult {
   final_value:    number;
@@ -65,6 +66,7 @@ export default function BacktestPage() {
   };
 
   return (
+    <ProtectedRoute>
     <main className="min-h-screen bg-black text-white p-6">
 
       <div className="mb-6 flex justify-between items-center">
@@ -109,5 +111,6 @@ export default function BacktestPage() {
       </div>
 
     </main>
+    </ProtectedRoute>
   );
 }
