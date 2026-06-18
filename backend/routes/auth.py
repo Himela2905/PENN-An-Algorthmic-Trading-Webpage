@@ -1,51 +1,75 @@
-from flask import Blueprint, request, jsonify
+"""
+routes/auth.py
+--------------
+POST /auth/register   → create account
+POST /auth/login      → get JWT access token
+GET  /auth/me         → get current user profile (JWT required)
+"""
+
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import (
+    create_access_token, jwt_required, get_jwt_identity,
+)
 from extensions import db, bcrypt
-from flask_jwt_extended import create_access_token
-from models import User
+from models.user import User
 
-auth_bp = Blueprint('auth', __name__)
+auth_bp = Blueprint("auth", __name__)
 
-@auth_bp.route('/signup', methods=['POST'])
-def signup():
-    data = request.get_json()
 
-    if not data or not data.get('name') or not data.get('email') or not data.get('password'):
-        return jsonify({'error': 'name, email and password are required'}), 400
+@auth_bp.route("/register", methods=["POST"])
+def register():
+    data     = request.get_json(silent=True) or {}
+    name = data.get("name", "").strip()
+    email    = data.get("email", "").strip().lower()
+    password = data.get("password", "")
 
-    name  = data['name'].strip()
-    email = data['email'].strip().lower()
-    password = data['password']
-
-    if User.query.filter_by(name=name).first():
-        return jsonify({'error': 'Name already taken'}), 400
+    if not name or not email or not password:
+        return jsonify({"error": "name, email and password are required"}), 400
 
     if User.query.filter_by(email=email).first():
-        return jsonify({'error': 'Email already registered'}), 400
+        return jsonify({"error": "Email already registered"}), 409
 
-    hashed = bcrypt.generate_password_hash(data['password']).decode('utf-8')
+    if User.query.filter_by(name=name).first():
+        return jsonify({"error": "name already taken"}), 409
+
+    hashed = bcrypt.generate_password_hash(password).decode("utf-8")
     user   = User(name=name, email=email, password_hash=hashed)
-
     db.session.add(user)
     db.session.commit()
 
-    return jsonify({'message': f'Account created for {name}'}), 201
+    token = create_access_token(identity=str(user.id))
+    return jsonify({
+        "message":      "Account created",
+        "access_token": token,
+        "user":         user.to_dict(),
+    }), 201
 
 
-@auth_bp.route('/login', methods=['POST'])
+@auth_bp.route("/login", methods=["POST"])
 def login():
-    data = request.get_json()
+    data     = request.get_json(silent=True) or {}
+    email    = data.get("email", "").strip().lower()
+    password = data.get("password", "")
 
-    if not data or not data.get('email') or not data.get('password'):
-        return jsonify({'error': 'email and password are required'}), 400
+    if not email or not password:
+        return jsonify({"error": "email and password are required"}), 400
 
-    # find user by email instead of name
-    user = User.query.filter_by(email=data['email'].strip().lower()).first()
-
-    if not user or not bcrypt.check_password_hash(user.password_hash, data['password']):
-        return jsonify({'error': 'Invalid credentials'}), 401
+    user = User.query.filter_by(email=email).first()
+    if not user or not bcrypt.check_password_hash(user.password_hash, password):
+        return jsonify({"error": "Invalid email or password"}), 401
 
     token = create_access_token(identity=str(user.id))
     return jsonify({
-        'access_token': token,
-        'name': user.name
-    }), 200
+        "access_token": token,
+        "user":         user.to_dict(),
+    })
+
+
+@auth_bp.route("/me", methods=["GET"])
+@jwt_required()
+def me():
+    user_id = get_jwt_identity()
+    user    = User.query.get(int(user_id))
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    return jsonify({"user": user.to_dict()})

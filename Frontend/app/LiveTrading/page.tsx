@@ -1,436 +1,485 @@
+'use client';
+import dynamic from 'next/dynamic';
+import { ReactNode } from 'react';
+import Navbar from '@/components/Navigation';
+import Ticker from '@/components/Ticker';
+import StatCounter from '@/components/StatCounter';
+import styles from './page.module.css';
 import Link from "next/link";
-import ProtectedRoute from "@/components/ProtectedRoute";
 
-export default function TradingTerminal() {
+
+const LiveChart = dynamic(() => import('@/components/LiveChart'), { ssr: false });
+
+<Link
+  href="/terminal"
+  className={styles.ctaPrimary}
+>
+  🖥 Open Live Terminal
+</Link>
+
+interface Feature {
+  icon: ReactNode;
+  title: string;
+  desc: string;
+  tag: string;
+}
+
+interface Strategy {
+  name: string;
+  type: string;
+  returns: string;
+  drawdown: string;
+  sharpe: string;
+  status: 'active' | 'paused';
+}
+
+interface Plan {
+  name: string;
+  price: string;
+  period: string;
+  desc: string;
+  features: string[];
+  cta: string;
+  highlight: boolean;
+}
+
+interface FooterColumn {
+  heading: string;
+  links: string[];
+}
+
+const FEATURES: Feature[] = [
+  {
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+    title: 'Sub-Millisecond Execution',
+    desc: 'Co-located servers in 12 global data centers. Direct market access with 847μs median round-trip on major exchanges.',
+    tag: 'Execution',
+  },
+  {
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+        <path d="M8 21h8M12 17v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M6 10l3 3 3-4 3 3 3-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+    title: 'Strategy Backtester',
+    desc: 'Test against 15+ years of tick-level data. Realistic slippage modeling, commission structures, and market impact simulation.',
+    tag: 'Research',
+  },
+  {
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+    title: 'Risk Management Engine',
+    desc: 'Real-time drawdown limits, position sizing, and kill-switch controls. VaR and CVaR monitoring across all open positions.',
+    tag: 'Risk',
+  },
+  {
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/>
+        <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    ),
+    title: 'Market Data Feeds',
+    desc: 'Level 2 order book, trade flow, and options chain data. 150+ exchanges and data sources consolidated into one normalized API.',
+    tag: 'Data',
+  },
+  {
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+    title: 'Portfolio Analytics',
+    desc: 'Sharpe, Sortino, Calmar ratios. Attribution analysis, factor exposure, and custom benchmark comparisons in real time.',
+    tag: 'Analytics',
+  },
+  {
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+    title: 'Python & REST API',
+    desc: 'First-class Python SDK with async support. Webhooks, WebSocket streams, and FIX protocol for institutional integrations.',
+    tag: 'Developer',
+  },
+];
+
+const STRATEGIES: Strategy[] = [
+  { name: 'Momentum Alpha',     type: 'Trend Following',       returns: '+142%', drawdown: '-8.2%',  sharpe: '2.41', status: 'active' },
+  { name: 'Statistical Arb v3', type: 'Mean Reversion',        returns: '+89%',  drawdown: '-5.1%',  sharpe: '3.12', status: 'active' },
+  { name: 'Vol Surface Edge',   type: 'Options Market Making', returns: '+67%',  drawdown: '-3.8%',  sharpe: '2.87', status: 'active' },
+  { name: 'Cross-Asset Macro',  type: 'Global Macro',          returns: '+203%', drawdown: '-14.6%', sharpe: '1.93', status: 'paused' },
+];
+
+const PLANS: Plan[] = [
+  {
+    name: 'Starter',
+    price: '$49',
+    period: '/mo',
+    desc: 'For independent traders exploring algo execution.',
+    features: ['5 live strategies', '5 years backtest data', '1M API calls/month', 'Standard execution', 'Community support'],
+    cta: 'Start Free Trial',
+    highlight: false,
+  },
+  {
+    name: 'Pro',
+    price: '$249',
+    period: '/mo',
+    desc: 'For serious traders who need institutional-grade tools.',
+    features: ['Unlimited strategies', '15 years tick data', 'Unlimited API calls', 'Co-location access', 'Priority support', 'Risk engine + VaR', 'Custom indicators'],
+    cta: 'Start Free Trial',
+    highlight: true,
+  },
+  {
+    name: 'Institutional',
+    price: 'Custom',
+    period: '',
+    desc: 'White-label infrastructure for funds and prop desks.',
+    features: ['Dedicated infra', 'FIX protocol access', 'Prime brokerage integration', 'SLA guarantee', 'Dedicated engineer', 'Custom data feeds', 'Compliance reporting'],
+    cta: 'Contact Sales',
+    highlight: false,
+  },
+];
+
+const LOGLINES: string[] = [
+  '[08:42:31.004] SIGNAL BUY  BTC/USDT @ 67,842.50  QTY: 0.15',
+  '[08:42:31.006] ORDER  SENT  exchange=BINANCE  id=ord_8a2f',
+  '[08:42:31.009] FILL   100%  price=67,843.10  slippage=+0.60',
+  '[08:42:55.118] SIGNAL SELL NVDA      @ 875.30    QTY: 120',
+  '[08:42:55.120] ORDER  SENT  exchange=NASDAQ   id=ord_9c1e',
+  '[08:42:55.124] FILL   100%  price=875.25    slippage=-0.05',
+  '[08:43:12.882] RISK   CHECK drawdown=-1.2%  limit=-8.0%  OK',
+  '[08:43:30.001] SIGNAL BUY  ETH/USDT @ 3,521.18  QTY: 2.5',
+];
+
+const FOOTER_COLS: FooterColumn[] = [
+  { heading: 'Platform', links: ['Execution Engine', 'Backtester', 'Risk Manager', 'Market Data', 'API Reference'] },
+  { heading: 'Company',  links: ['About', 'Blog', 'Careers', 'Press', 'Security'] },
+  { heading: 'Legal',    links: ['Terms of Service', 'Privacy Policy', 'Cookie Policy', 'Risk Disclaimer'] },
+];
+
+function getLogClass(line: string): string {
+  if (line.includes('SIGNAL')) return styles.logSignal;
+  if (line.includes('FILL'))   return styles.logFill;
+  if (line.includes('RISK'))   return styles.logRisk;
+  return styles.logOrder;
+}
+
+export default function Home() {
   return (
-    <ProtectedRoute>
-    <div className="bg-[#0b0e11] text-white min-h-screen flex overflow-hidden">
+    <main className={styles.main}>
+      <Navbar />
 
-      {/* SIDEBAR */}
-      <aside className="w-[80px] border-r border-[#1f2937] flex flex-col items-center py-6 bg-[#0f1319]">
-
-        <div className="text-xl font-bold mb-10">
-          TD
+      {/* HERO */}
+      <section className={styles.hero} id="platform">
+        <div className={styles.heroBg}>
+          <div className={styles.heroGlow1} />
+          <div className={styles.heroGlow2} />
+          <div className={styles.grid} />
         </div>
+        <div className={styles.container}>
+          <div className={styles.heroLayout}>
+            <div className={styles.heroContent}>
+              <div className={styles.heroBadge}>
+                <span className={styles.badgeDot} />
+                Production-ready infrastructure
+              </div>
+              <h1 className={styles.heroTitle}>
+                Trade faster than<br />
+                <span className={styles.heroAccent}>the market thinks.</span>
+              </h1>
+              <p className={styles.heroDesc}>
+                Institutional-grade algorithmic trading infrastructure. Deploy, backtest, and execute
+                strategies across equities, crypto, and derivatives — with sub-millisecond latency.
+              </p>
+              <div className={styles.heroCta}>
+                <a href="/terminal" className={styles.ctaPrimary}>🖥 Open Live Terminal</a>
+                <a href="#" className={styles.ctaSecondary}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                    <polygon points="10,8 16,12 10,16" fill="currentColor"/>
+                  </svg>
+                  Watch Demo
+                </a>
+              </div>
+              <div className={styles.heroTrust}>
+                <span className={styles.trustLabel}>Trusted by traders at</span>
+                <div className={styles.trustLogos}>
+                  {['Citadel', 'Two Sigma', 'Virtu', 'DRW'].map(name => (
+                    <span key={name} className={styles.trustLogo}>{name}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
 
-        <div className="flex flex-col gap-4 text-sm text-gray-400 items-center">
-
-          <button className="w-12 h-12 rounded-xl bg-[#1e2329] text-white flex items-center justify-center">
-            ⌂
-          </button>
-
-          <button className="w-12 h-12 rounded-xl hover:bg-[#1e2329] transition">
-            📈
-          </button>
-
-          <button className="w-12 h-12 rounded-xl hover:bg-[#1e2329] transition">
-            ⚡
-          </button>
-
-          <button className="w-12 h-12 rounded-xl hover:bg-[#1e2329] transition">
-            💼
-          </button>
-
-          <button className="w-12 h-12 rounded-xl hover:bg-[#1e2329] transition">
-            ⚙
-          </button>
-
-        </div>
-
-      </aside>
-
-
-      {/* MAIN AREA */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-
-        {/* TOPBAR */}
-        <header className="h-16 border-b border-[#1f2937] flex items-center justify-between px-6 bg-[#0f1319]">
-
-          <div>
-            <h1 className="text-lg font-semibold tracking-wide">
-              Team Diamonds Terminal
-            </h1>
+            <div className={styles.heroChart}>
+              <LiveChart />
+              <div className={styles.orderLog}>
+                {LOGLINES.map((line, i) => (
+                  <div key={i} className={styles.logLine} style={{ animationDelay: `${i * 0.12}s` }}>
+                    <span className={getLogClass(line)}>{line.slice(0, 8)}</span>
+                    <span className={styles.logText}>{line.slice(8)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-
-
-          <div className="flex items-center gap-4 text-sm">
-
-            <div className="px-4 py-2 rounded-lg bg-[#131722] border border-[#1f2937] text-green-400">
-              Market Open
-            </div>
-
-            <div className="px-4 py-2 rounded-lg bg-[#131722] border border-[#1f2937]">
-              Balance: ₹4,52,120
-            </div>
-
-          </div>
-
-        </header>
-
-
-        {/* TERMINAL CONTENT */}
-        <div className="flex flex-1 overflow-hidden">
-
-
-          {/* WATCHLIST */}
-          <section className="w-[260px] border-r border-[#1f2937] bg-[#0f1319] overflow-y-auto">
-
-            <div className="p-4 border-b border-[#1f2937]">
-              <input
-                type="text"
-                placeholder="Search markets"
-                className="w-full bg-[#131722] border border-[#1f2937] rounded-lg px-4 py-2 text-sm outline-none"
-              />
-            </div>
-
-
-            <div className="p-3 text-sm">
-
-              <div className="flex justify-between items-center p-3 rounded-lg hover:bg-[#131722] cursor-pointer transition">
-                <div>
-                  <p className="font-medium">NIFTY 50</p>
-                  <p className="text-gray-500 text-xs">NSE Index</p>
-                </div>
-                <div className="text-right">
-                  <p>24,512</p>
-                  <p className="text-green-400 text-xs">+1.82%</p>
-                </div>
-              </div>
-
-
-              <div className="flex justify-between items-center p-3 rounded-lg hover:bg-[#131722] cursor-pointer transition">
-                <div>
-                  <p className="font-medium">BANKNIFTY</p>
-                  <p className="text-gray-500 text-xs">NSE Bank</p>
-                </div>
-                <div className="text-right">
-                  <p>52,118</p>
-                  <p className="text-red-400 text-xs">-0.24%</p>
-                </div>
-              </div>
-
-
-              <div className="flex justify-between items-center p-3 rounded-lg hover:bg-[#131722] cursor-pointer transition">
-                <div>
-                  <p className="font-medium">RELIANCE</p>
-                  <p className="text-gray-500 text-xs">NSE Equity</p>
-                </div>
-                <div className="text-right">
-                  <p>₹2,944</p>
-                  <p className="text-green-400 text-xs">+2.12%</p>
-                </div>
-              </div>
-
-
-              <div className="flex justify-between items-center p-3 rounded-lg hover:bg-[#131722] cursor-pointer transition">
-                <div>
-                  <p className="font-medium">TCS</p>
-                  <p className="text-gray-500 text-xs">NSE Equity</p>
-                </div>
-                <div className="text-right">
-                  <p>₹4,221</p>
-                  <p className="text-green-400 text-xs">+0.84%</p>
-                </div>
-              </div>
-
-            </div>
-
-          </section>
-
-
-          {/* CENTER CHART AREA */}
-          <section className="flex-1 flex flex-col bg-[#0b0e11] overflow-hidden">
-
-            {/* CHART HEADER */}
-            <div className="h-16 border-b border-[#1f2937] flex items-center justify-between px-6 bg-[#0f1319]">
-
-              <div>
-                <h2 className="text-xl font-semibold">NIFTY 50</h2>
-                <p className="text-green-400 text-sm mt-1">24,512 +1.82%</p>
-              </div>
-
-
-              <div className="flex items-center gap-2 text-sm">
-
-                <button className="px-4 py-2 rounded-lg bg-[#1e2329]">
-                  1m
-                </button>
-
-                <button className="px-4 py-2 rounded-lg hover:bg-[#1e2329] text-gray-400 transition">
-                  5m
-                </button>
-
-                <button className="px-4 py-2 rounded-lg hover:bg-[#1e2329] text-gray-400 transition">
-                  15m
-                </button>
-
-                <button className="px-4 py-2 rounded-lg hover:bg-[#1e2329] text-gray-400 transition">
-                  1H
-                </button>
-
-                <button className="px-4 py-2 rounded-lg hover:bg-[#1e2329] text-gray-400 transition">
-                  1D
-                </button>
-
-              </div>
-
-            </div>
-
-
-            {/* FAKE PROFESSIONAL CHART */}
-            <div className="flex-1 relative bg-[#0b0e11] overflow-hidden">
-
-              {/* GRID */}
-              <div className="absolute inset-0 opacity-[0.05] bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:70px_70px]"></div>
-
-
-              {/* PRICE LINE */}
-              <svg
-                viewBox="0 0 1200 500"
-                className="absolute inset-0 w-full h-full"
-                preserveAspectRatio="none"
-              >
-
-                <path
-                  d="M0 400 C100 380 150 300 250 320 C350 340 400 200 500 180 C650 150 700 240 800 160 C900 100 980 120 1200 40"
-                  fill="none"
-                  stroke="#22c55e"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                />
-
-              </svg>
-
-
-              {/* VOLUME BARS */}
-              <div className="absolute bottom-0 left-0 w-full flex items-end gap-[2px] h-28 px-4 opacity-40">
-
-                <div className="bg-green-500 w-full h-10"></div>
-                <div className="bg-green-500 w-full h-16"></div>
-                <div className="bg-red-500 w-full h-8"></div>
-                <div className="bg-green-500 w-full h-20"></div>
-                <div className="bg-green-500 w-full h-14"></div>
-                <div className="bg-red-500 w-full h-9"></div>
-                <div className="bg-green-500 w-full h-24"></div>
-                <div className="bg-green-500 w-full h-18"></div>
-                <div className="bg-red-500 w-full h-12"></div>
-                <div className="bg-green-500 w-full h-28"></div>
-                <div className="bg-green-500 w-full h-16"></div>
-                <div className="bg-red-500 w-full h-10"></div>
-                <div className="bg-green-500 w-full h-20"></div>
-                <div className="bg-green-500 w-full h-15"></div>
-
-              </div>
-
-            </div>
-
-
-            {/* BOTTOM POSITIONS */}
-            <div className="h-[180px] border-t border-[#1f2937] bg-[#0f1319] overflow-hidden">
-
-              <div className="flex items-center gap-8 px-6 h-14 border-b border-[#1f2937] text-sm text-gray-400">
-                <button className="text-white">Positions</button>
-                <button>Orders</button>
-                <button>History</button>
-                <button>Strategy Logs</button>
-              </div>
-
-
-              <div className="p-6 text-sm overflow-x-auto">
-
-                <table className="w-full">
-                  <thead className="text-gray-500">
-                    <tr className="text-left border-b border-[#1f2937]">
-                      <th className="pb-4">Symbol</th>
-                      <th className="pb-4">Qty</th>
-                      <th className="pb-4">Avg Price</th>
-                      <th className="pb-4">LTP</th>
-                      <th className="pb-4">P&L</th>
-                      <th className="pb-4">Status</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-
-                    <tr className="border-b border-[#1f2937] text-gray-300">
-                      <td className="py-4">RELIANCE</td>
-                      <td>20</td>
-                      <td>2910</td>
-                      <td>2944</td>
-                      <td className="text-green-400">+₹680</td>
-                      <td>Open</td>
-                    </tr>
-
-                    <tr className="border-b border-[#1f2937] text-gray-300">
-                      <td className="py-4">BANKNIFTY</td>
-                      <td>5</td>
-                      <td>52180</td>
-                      <td>52118</td>
-                      <td className="text-red-400">-₹310</td>
-                      <td>Open</td>
-                    </tr>
-
-                  </tbody>
-                </table>
-
-              </div>
-
-            </div>
-
-          </section>
-
-
-          {/* RIGHT EXECUTION PANEL */}
-          <section className="w-[340px] border-l border-[#1f2937] bg-[#0f1319] overflow-y-auto">
-
-            <div className="p-6 border-b border-[#1f2937]">
-
-              <h2 className="text-lg font-semibold mb-6">
-                Strategy Execution
-              </h2>
-
-
-              <div className="space-y-4">
-
-                <div>
-                  <label className="text-sm text-gray-400 block mb-2">
-                    Strategy Name
-                  </label>
-
-                  <input
-                    type="text"
-                    placeholder="Momentum Alpha"
-                    className="w-full bg-[#131722] border border-[#1f2937] rounded-lg px-4 py-3 outline-none"
-                  />
-                </div>
-
-
-                <div>
-                  <label className="text-sm text-gray-400 block mb-2">
-                    Capital Allocation
-                  </label>
-
-                  <input
-                    type="text"
-                    placeholder="₹50,000"
-                    className="w-full bg-[#131722] border border-[#1f2937] rounded-lg px-4 py-3 outline-none"
-                  />
-                </div>
-
-
-                <div>
-                  <label className="text-sm text-gray-400 block mb-2">
-                    Risk Level
-                  </label>
-
-                  <select className="w-full bg-[#131722] border border-[#1f2937] rounded-lg px-4 py-3 outline-none">
-                    <option>Low</option>
-                    <option>Medium</option>
-                    <option>High</option>
-                  </select>
-                </div>
-
-
-                <button className="w-full bg-green-500 hover:bg-green-400 transition text-black py-3 rounded-lg font-semibold mt-4">
-                  Deploy Strategy
-                </button>
-
-              </div>
-
-            </div>
-
-
-            {/* AI SIGNALS */}
-            <div className="p-6 border-b border-[#1f2937]">
-
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-semibold">AI Signals</h2>
-                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-              </div>
-
-
-              <div className="space-y-4 text-sm">
-
-                <div className="border border-[#1f2937] rounded-lg p-4 bg-[#131722]">
-                  <div className="flex justify-between">
-                    <p className="font-medium">RELIANCE</p>
-                    <p className="text-green-400">BUY</p>
-                  </div>
-
-                  <p className="text-gray-500 text-xs mt-2">
-                    Strong breakout detected above resistance zone.
-                  </p>
-                </div>
-
-
-                <div className="border border-[#1f2937] rounded-lg p-4 bg-[#131722]">
-                  <div className="flex justify-between">
-                    <p className="font-medium">TCS</p>
-                    <p className="text-green-400">BUY</p>
-                  </div>
-
-                  <p className="text-gray-500 text-xs mt-2">
-                    Momentum continuation confirmed.
-                  </p>
-                </div>
-
-
-                <div className="border border-[#1f2937] rounded-lg p-4 bg-[#131722]">
-                  <div className="flex justify-between">
-                    <p className="font-medium">BANKNIFTY</p>
-                    <p className="text-red-400">SELL</p>
-                  </div>
-
-                  <p className="text-gray-500 text-xs mt-2">
-                    Weakness detected near support breakdown.
-                  </p>
-                </div>
-
-              </div>
-
-            </div>
-
-
-            {/* SYSTEM STATUS */}
-            <div className="p-6">
-
-              <h2 className="text-lg font-semibold mb-6">
-                System Status
-              </h2>
-
-              <div className="space-y-4 text-sm">
-
-                <div className="flex justify-between items-center">
-                  <p className="text-gray-400">API Connection</p>
-                  <p className="text-green-400">Connected</p>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <p className="text-gray-400">Broker Sync</p>
-                  <p className="text-green-400">Active</p>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <p className="text-gray-400">Execution Engine</p>
-                  <p className="text-green-400">Running</p>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <p className="text-gray-400">Latency</p>
-                  <p className="text-white">12ms</p>
-                </div>
-
-              </div>
-
-            </div>
-
-          </section>
-
         </div>
+      </section>
 
-      </main>
+      {/* TICKER */}
+      <Ticker />
 
-    </div>
-    </ProtectedRoute>
+      {/* STATS */}
+      <section className={styles.statsSection}>
+        <div className={styles.container}>
+          <StatCounter />
+        </div>
+      </section>
+
+      {/* FEATURES */}
+      <section className={styles.section} id="strategies">
+        <div className={styles.container}>
+          <div className={styles.sectionHead}>
+            <span className={styles.eyebrow}>Platform</span>
+            <h2 className={styles.sectionTitle}>Everything you need to<br />run serious strategies</h2>
+            <p className={styles.sectionDesc}>
+              From signal generation to trade settlement — the full stack, engineered for speed and reliability.
+            </p>
+          </div>
+          <div className={styles.featGrid}>
+            {FEATURES.map((f, i) => (
+              <div key={i} className={styles.featCard}>
+                <div className={styles.featIcon}>{f.icon}</div>
+                <div className={styles.featTag}>{f.tag}</div>
+                <h3 className={styles.featTitle}>{f.title}</h3>
+                <p className={styles.featDesc}>{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* STRATEGY TABLE */}
+      <section className={styles.section} id="performance">
+        <div className={styles.container}>
+          <div className={styles.sectionHead}>
+            <span className={styles.eyebrow}>Performance</span>
+            <h2 className={styles.sectionTitle}>Strategies that perform<br />across market regimes</h2>
+            <p className={styles.sectionDesc}>
+              Live results from community strategies running on Penn infrastructure.
+            </p>
+          </div>
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Strategy Name</th>
+                  <th>Type</th>
+                  <th>Total Return</th>
+                  <th>Max Drawdown</th>
+                  <th>Sharpe Ratio</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {STRATEGIES.map((s, i) => (
+                  <tr key={i}>
+                    <td><span className={styles.stratName}>{s.name}</span></td>
+                    <td><span className={styles.stratType}>{s.type}</span></td>
+                    <td><span className={styles.positive}>{s.returns}</span></td>
+                    <td><span className={styles.negative}>{s.drawdown}</span></td>
+                    <td><span className={styles.neutral}>{s.sharpe}</span></td>
+                    <td>
+                      <span className={`${styles.statusBadge} ${s.status === 'active' ? styles.statusActive : styles.statusPaused}`}>
+                        <span className={styles.statusDot} />
+                        {s.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {/* CODE SECTION */}
+      <section className={styles.section} style={{ paddingTop: 0 }}>
+        <div className={styles.container}>
+          <div className={styles.codeLayout}>
+            <div className={styles.codeContent}>
+              <span className={styles.eyebrow}>Developer First</span>
+              <h2 className={styles.sectionTitle} style={{ marginBottom: '1rem' }}>
+                Build your edge in Python.<br />Deploy in minutes.
+              </h2>
+              <p className={styles.sectionDesc} style={{ textAlign: 'left', maxWidth: '420px', marginBottom: '1.5rem' }}>
+                Our Python SDK abstracts away infrastructure complexity. Write strategy logic, we handle
+                the rest — order routing, risk checks, position tracking, and reconciliation.
+              </p>
+              <ul className={styles.codeFeatures}>
+                {[
+                  'Async-native SDK with WebSocket support',
+                  'Type-safe order and position objects',
+                  'Built-in backtesting harness',
+                  'One-line paper trading mode',
+                ].map(item => <li key={item}>{item}</li>)}
+              </ul>
+              <a href="#" className={styles.ctaPrimary} style={{ display: 'inline-block', marginTop: '2rem' }}>
+                View Documentation
+              </a>
+            </div>
+            <div className={styles.codeBlock}>
+              <div className={styles.codeHeader}>
+                <div className={styles.codeDots}>
+                  <span /><span /><span />
+                </div>
+                <span className={styles.codeFilename}>momentum_strategy.py</span>
+              </div>
+              <pre className={styles.codePre}><code>{`from Penn import Strategy, Signal
+from penn.indicators import EMA, RSI
+
+class MomentumAlpha(Strategy):
+    """
+    Trend-following with RSI filter.
+    Runs live on Penn infrastructure.
+    """
+
+    def on_init(self):
+        self.ema_fast = EMA(period=12)
+        self.ema_slow = EMA(period=26)
+        self.rsi = RSI(period=14)
+
+    async def on_bar(self, bar):
+        fast = self.ema_fast.update(bar.close)
+        slow = self.ema_slow.update(bar.close)
+        rsi  = self.rsi.update(bar.close)
+
+        if fast > slow and rsi < 65:
+            await self.submit(Signal.BUY,
+                qty=self.risk.size(bar, risk_pct=0.01),
+                stop_loss=bar.close * 0.985,
+            )
+        elif fast < slow:
+            await self.close_all()
+
+# Deploy to live trading
+strategy = MomentumAlpha(
+    symbol="BTC/USDT",
+    exchange="binance",
+    timeframe="15m",
+)
+await strategy.deploy()`}</code></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* PRICING */}
+      <section className={styles.section} id="pricing">
+        <div className={styles.container}>
+          <div className={styles.sectionHead}>
+            <span className={styles.eyebrow}>Pricing</span>
+            <h2 className={styles.sectionTitle}>Scale as your edge grows</h2>
+            <p className={styles.sectionDesc}>
+              No hidden fees. No per-trade charges. Flat monthly pricing so your profitability is yours.
+            </p>
+          </div>
+          <div className={styles.pricingGrid}>
+            {PLANS.map((plan, i) => (
+              <div key={i} className={`${styles.pricingCard} ${plan.highlight ? styles.pricingHighlight : ''}`}>
+                {plan.highlight && <div className={styles.popularBadge}>Most Popular</div>}
+                <div className={styles.planName}>{plan.name}</div>
+                <div className={styles.planPrice}>
+                  {plan.price}<span className={styles.planPeriod}>{plan.period}</span>
+                </div>
+                <p className={styles.planDesc}>{plan.desc}</p>
+                <ul className={styles.planFeatures}>
+                  {plan.features.map((f, j) => (
+                    <li key={j}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <path d="M20 6L9 17l-5-5" stroke={plan.highlight ? '#00FF88' : '#5A6A8A'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <a href="#" className={plan.highlight ? styles.ctaPrimary : styles.ctaOutline}>
+                  {plan.cta}
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA BANNER */}
+      <section className={styles.ctaBanner}>
+        <div className={styles.ctaBannerBg} />
+        <div className={styles.container}>
+          <div className={styles.ctaBannerInner}>
+            <h2 className={styles.ctaBannerTitle}>
+              Your alpha is only as fast<br />as your infrastructure.
+            </h2>
+            <p className={styles.ctaBannerDesc}>
+              Join 12,400+ strategies running on Penn today. 14-day free trial, no credit card required.
+            </p>
+            <div className={styles.ctaBannerActions}>
+              <a href="#" className={styles.ctaPrimary}>Start Free Trial</a>
+              <a href="#" className={styles.ctaGhost}>Talk to an Engineer</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className={styles.footer}>
+        <div className={styles.container}>
+          <div className={styles.footerGrid}>
+            <div className={styles.footerBrand}>
+              <div className={styles.footerLogo}>
+                <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
+                  <path d="M2 16L8 8L12 12L16 6L20 10" stroke="#00FF88" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="20" cy="10" r="2" fill="#00FF88"/>
+                </svg>
+                <span>Penn</span>
+              </div>
+              <p className={styles.footerTagline}>
+                Institutional-grade algorithmic<br />trading infrastructure.
+              </p>
+              <div className={styles.footerStatus}>
+                <span className={styles.statusDotGreen} />
+                All systems operational
+              </div>
+            </div>
+            {FOOTER_COLS.map(col => (
+              <div key={col.heading} className={styles.footerCol}>
+                <h4 className={styles.footerColHead}>{col.heading}</h4>
+                <ul>
+                  {col.links.map(link => (
+                    <li key={link}><a href="#">{link}</a></li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div className={styles.footerBottom}>
+            <span>© 2026 Penn Technologies, Inc. All rights reserved.</span>
+            <span>Not financial advice. Trading involves substantial risk of loss.</span>
+          </div>
+        </div>
+      </footer>
+    </main>
   );
 }

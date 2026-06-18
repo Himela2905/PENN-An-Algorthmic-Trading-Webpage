@@ -6,7 +6,7 @@ export default function NavBar() {
 
       <div className="space-x-6 hidden md:block">
         <Link href="/Backtest" className="hover:text-gray-400">BackTest</Link>
-        <a href="#" className="hover:text-gray-400">Live Trading</a>
+        <Link href="/LiveTrading" className="hover:text-gray-400">Live Trading</Link>
         <Link href="/About" className="hover:text-gray-400">About</Link>
       </div>
 
