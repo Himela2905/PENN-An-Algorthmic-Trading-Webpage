@@ -8,7 +8,7 @@ import {
   Market, Orders, Backtest, Bot, FyersAuth,
   connectPriceWS, connectSignalWS,
   type Candle, type QuoteData, type RankedAlgorithm, type OrderData, type PositionData,
-} from '@/lib/api';
+} from '@/lib/liveApi';
 
 // ── Watchlist symbols ───────────────────────────────────────────────────────
 const WATCHLIST_SYMBOLS = ['AAPL','NVDA','TSLA','MSFT','AMZN','GOOGL','META'];

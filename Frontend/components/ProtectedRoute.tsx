@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { isLoggedIn } from "@/lib/api";
+import { isLoggedIn } from "@/lib/liveApi";
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const router = useRouter();

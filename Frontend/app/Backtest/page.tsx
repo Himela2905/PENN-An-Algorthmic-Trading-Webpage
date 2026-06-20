@@ -5,7 +5,7 @@ import BacktestSidebar from "@/components/BacktestSidebar";
 import BacktestChart   from "@/components/BacktestChart";
 import BacktestStats   from "@/components/BacktestStats";
 import TradeHistory    from "@/components/TradeHistory";
-import { runBacktest } from "@/lib/api";
+import { runBacktest } from "@/lib/liveApi";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 interface BacktestResult {

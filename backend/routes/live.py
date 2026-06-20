@@ -84,3 +84,21 @@ def trades():
     return jsonify({
         "trades": live_engine.trade_history
     })
+
+
+@live_bp.route("/pnl", methods=["GET"])
+@jwt_required()
+def pnl():
+
+    return jsonify(
+        live_engine.get_pnl()
+    )
+
+
+@live_bp.route("/stats")
+@jwt_required()
+def stats():
+
+    return jsonify(
+        live_engine.get_stats()
+    )

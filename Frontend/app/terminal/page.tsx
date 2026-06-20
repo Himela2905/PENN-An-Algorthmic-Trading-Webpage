@@ -1,6 +1,7 @@
 'use client';
-import TradingTerminal from '@/components/Terminal/TradingTerminal';
 
-export default function TerminalPage() {
-  return <TradingTerminal />;
+import LiveTrading from '../../components/LiveTrading/LiveTrading';
+
+export default function LiveTradingPage() {
+  return <LiveTrading />;
 }
