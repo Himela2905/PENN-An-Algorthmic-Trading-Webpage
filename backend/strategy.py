@@ -788,3 +788,90 @@ class SuperTrend:
         self.df.loc[sell, "signal"] = -1
 
         return self.df
+
+# ==========================================
+# STRATEGY REGISTRY — for recommender.py
+# ==========================================
+
+STRATEGY_REGISTRY = {
+    "Golden Cross":          lambda df: GoldenCross(df, long_period=50, short_period=20),
+    "RSI":                   lambda df: RSI_Strategy(df, period=14),
+    "Death Cross":           lambda df: DeathCross(df, short_period=50, long_period=200),
+    "EMA Cross":             lambda df: EMA_Cross(df, fast=20, slow=50),
+    "Triple MA":             lambda df: TripleMA(df),
+    "EMA Ribbon":            lambda df: EMA_Ribbon(df),
+    "MACD Cross":            lambda df: MACD_Cross(df),
+    "MACD Zero Line":        lambda df: MACD_ZeroLine(df),
+    "Momentum Burst":        lambda df: MomentumBurst(df, period=10, threshold=5),
+    "ROC Strategy":          lambda df: ROC_Strategy(df, period=14),
+    "Price Breakout":        lambda df: PriceBreakout(df, period=20),
+    "Donchian Breakout":     lambda df: DonchianBreakout(df, period=20),
+    "Bollinger Bands":       lambda df: BollingerBands(df, period=20, std_dev=2),
+    "Bollinger Squeeze":     lambda df: BollingerSqueeze(df, period=20),
+    "VWAP Cross":            lambda df: VWAP_Cross(df),
+    "VWAP Bounce":           lambda df: VWAP_Bounce(df),
+    "ATR Breakout":          lambda df: ATR_Breakout(df, period=14),
+    "Stochastic":            lambda df: Stochastic_Strategy(df, period=14),
+    "ZScore Reversion":      lambda df: ZScore_Reversion(df, period=20),
+    "ADX Strategy":          lambda df: ADX_Strategy(df, period=14),
+    "Volume Spike Breakout": lambda df: VolumeSpikeBreakout(df, period=20),
+    "SuperTrend":            lambda df: SuperTrend(df, period=10, multiplier=3),
+   
+
+}
+STRATEGY_REGISTRY["AI Ensemble"] = lambda df: AIEnsemble(df)
+# ==========================================
+# 21. AI Ensemble (voting-based meta-strategy)
+# ==========================================
+# Combines signals from several existing strategies and acts only
+# when a genuine majority agree — a standard "ensemble learning"
+# technique. Voters are chosen from different categories (trend,
+# reversion, breakout) so they aren't all just agreeing with each
+# other for the same underlying reason.
+
+class AIEnsemble:
+
+    def __init__(self, df, voter_names=None):
+        self.original_df = df.copy()
+        self.df = df
+        self.voter_names = voter_names or [
+            "RSI", "MACD Cross", "Golden Cross",
+            "Bollinger Bands", "ATR Breakout",
+        ]
+
+    def generate_signals(self):
+        vote_columns = {}
+
+        for name in self.voter_names:
+            try:
+                if name not in STRATEGY_REGISTRY:
+                    continue
+
+                voter_df = self.original_df.copy()
+                voter    = STRATEGY_REGISTRY[name](voter_df)
+                voter_df = voter.generate_signals()
+
+                if "signal" not in voter_df.columns:
+                    continue
+
+                vote_columns[name] = voter_df["signal"].fillna(0).reset_index(drop=True)
+
+            except Exception as e:
+                print(f"[AIEnsemble] voter '{name}' failed: {e}")
+                continue
+
+        if not vote_columns:
+            self.df["signal"] = 0
+            return self.df
+
+        votes = pd.DataFrame(vote_columns)
+
+        buy_votes  = (votes == 1).sum(axis=1)
+        sell_votes = (votes == -1).sum(axis=1)
+
+        self.df = self.original_df.copy()
+        self.df["signal"] = 0
+        self.df.loc[(buy_votes.values  > sell_votes.values) & (buy_votes.values  > 0), "signal"] = 1
+        self.df.loc[(sell_votes.values > buy_votes.values) & (sell_votes.values > 0), "signal"] = -1
+
+        return self.df

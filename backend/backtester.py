@@ -14,16 +14,16 @@ class Backtester:
         self.trades          = []
 
     def run(self):
-        # clean data
         self.df = self.df.dropna(subset=['close'])
 
         if self.df.empty:
             return self.initial_balance, [], 0, 0
 
-        # reset
         self.balance  = self.initial_balance
         self.position = 0
         self.trades   = []
+
+        equity_history = [self.initial_balance]  # track equity at every step
 
         for i, row in self.df.iterrows():
             try:
@@ -46,39 +46,34 @@ class Backtester:
                     self.position = 0
                     self.trades.append(("SELL", price, i))
 
+                # record current equity (cash + position value) at every step
+                current_equity = self.balance + (self.position * price)
+                equity_history.append(current_equity)
+
             except Exception:
                 continue
 
-        # close open position at end
+        # close any open position at the end
         final_price = float(self.df.iloc[-1]["close"])
         if self.position > 0:
             self.balance  = self.position * final_price
             self.position = 0
             self.trades.append(("SELL", final_price, self.df.index[-1]))
+            equity_history.append(self.balance)
 
-        final_value = self.balance
+        final_value = self.balance if self.balance > 0 else self.initial_balance
 
-        if final_value <= 0:
-            final_value = self.initial_balance
-
-        # win ratio
+        # ---- Win ratio ----
         buy_prices  = [p for a, p, _ in self.trades if a == "BUY"]
         sell_prices = [p for a, p, _ in self.trades if a == "SELL"]
         pairs       = list(zip(buy_prices, sell_prices))
         wins        = sum(1 for b, s in pairs if s > b)
         win_ratio   = round((wins / len(pairs) * 100), 1) if pairs else 0
 
-        # max drawdown
-        peak     = self.initial_balance
-        drawdown = 0
-        running  = self.initial_balance
-        for action, price, _ in self.trades:
-            if action == "SELL":
-                running  = running + (price - (running / (running / price)))
-                peak     = max(peak, running)
-                dd       = (running - peak) / peak * 100
-                drawdown = min(drawdown, dd)
+        # ---- Max drawdown — calculated from the FULL equity history ----
+        equity_series = pd.Series(equity_history)
+        running_max   = equity_series.cummax()
+        drawdown_series = (equity_series - running_max) / running_max * 100
+        max_drawdown  = round(float(drawdown_series.min()), 2) if not drawdown_series.empty else 0
 
-        print(f"Trades executed: {len(self.trades)}, Final: {final_value}, WinRatio: {win_ratio}")
-
-        return round(final_value, 2), self.trades, win_ratio, round(drawdown, 2)
+        return round(final_value, 2), self.trades, win_ratio, max_drawdown

@@ -1,3 +1,4 @@
+from datetime import timedelta
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -9,6 +10,7 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=7)
 
 class ProductionConfig(Config):
     DEBUG = False
