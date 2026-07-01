@@ -67,7 +67,15 @@ export default function BacktestPage() {
 
   return (
     <ProtectedRoute>
-    <main className="min-h-screen bg-black text-white p-6">
+    <main className="min-h-screen text-white p-6" style={{
+          background: '#05070D',
+          position: 'relative',
+        }}>
+          <div style={{
+            position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
+            background: 'radial-gradient(600px circle at 20% 10%, rgba(0,255,136,0.06), transparent 60%), radial-gradient(500px circle at 80% 0%, rgba(90,198,250,0.06), transparent 60%)',
+          }} />
+          <div style={{ position: 'relative', zIndex: 1 }}>
 
       <div className="mb-6 flex justify-between items-center">
         <div>
@@ -109,7 +117,7 @@ export default function BacktestPage() {
       <div className="mt-5">
         <TradeHistory trades={result.trades} loading={loading} />
       </div>
-
+    </div>
     </main>
     </ProtectedRoute>
   );

@@ -14,8 +14,9 @@ const LiveChart = dynamic(() => import('@/components/LiveChart'), { ssr: false }
   href="/terminal"
   className={styles.ctaPrimary}
 >
-  🖥 Open Live Terminal
+  🖥 Open Paper Trading Terminal
 </Link>
+
 
 interface Feature {
   icon: ReactNode;
@@ -204,13 +205,12 @@ export default function Home() {
                 strategies across equities, crypto, and derivatives — with sub-millisecond latency.
               </p>
               <div className={styles.heroCta}>
-                <a href="/terminal" className={styles.ctaPrimary}>🖥 Open Live Terminal</a>
-                <a href="#" className={styles.ctaSecondary}>
+                <a href="/terminal" className={styles.ctaPrimary}>🖥 Open Paper Trading Terminal</a>
+                <a href="/recommend" className={styles.ctaSecondary}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-                    <polygon points="10,8 16,12 10,16" fill="currentColor"/>
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  Watch Demo
+                  AI Strategy Recommendation
                 </a>
               </div>
               <div className={styles.heroTrust}>

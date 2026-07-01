@@ -4,11 +4,14 @@ import Link from 'next/link';
 import s from './Terminal.module.css';
 import { ALGORITHMS, MOCK_ORDERS, MOCK_POSITIONS, SEED_SIGNALS } from './mockData';
 import type { Algorithm, Order, Position, SignalLog, BotStatus, OrderSide, OrderType } from './types';
+
+// REPLACE WITH:
 import {
-  Market, Orders, Backtest, Bot, FyersAuth,
+  Market, Orders, Recommend, Bot, FyersAuth,runBacktest as apiRunBacktest,
   connectPriceWS, connectSignalWS,
-  type Candle, type QuoteData, type RankedAlgorithm, type OrderData, type PositionData,
+  type Candle, type QuoteData, type OrderData, type PositionData,
 } from '@/lib/liveApi';
+
 
 // ── Watchlist symbols ───────────────────────────────────────────────────────
 const WATCHLIST_SYMBOLS = ['AAPL','NVDA','TSLA','MSFT','AMZN','GOOGL','META'];
@@ -236,7 +239,7 @@ export default function TradingTerminal() {
     const fetchAll = () => {
       Market.watchlist(WATCHLIST_SYMBOLS).then(r => {
         const map: Record<string, QuoteData> = {};
-        r.quotes.forEach(q => { map[q.symbol] = q; });
+        r.quotes.forEach((q: QuoteData) => { map[q.symbol] = q; });
         setQuotes(map);
       }).catch(() => {});
     };
@@ -351,16 +354,36 @@ export default function TradingTerminal() {
     setAiRunning(true); setAiDone(false);
     pushSignal({ time: new Date().toLocaleTimeString('en-US',{hour12:false}), algo: 'AI', symbol: activeSym, type: 'AI', message: `Running AI backtest on 20 algorithms for ${activeSym}...` });
     try {
-      const result = await Backtest.aiRank({ symbol: activeSym, period: '2y' });
-      const ranked = result.algorithms as RankedAlgorithm[];
-      // Merge with local algo metadata
-      setAlgos(ALGORITHMS.map(a => {
-        const r = ranked.find(x => x.id === a.id);
-        return r ? { ...a, score: r.score, rank: r.rank, winRate: r.winRate, sharpe: r.sharpe, maxDrawdown: r.maxDrawdown } : a;
-      }).sort((a,b) => (a.rank ?? 99) - (b.rank ?? 99)));
+      const result = await Recommend.full({ symbol: activeSym, period: '2y' });
+      const ranked = result.all_strategies;  // already sorted best-to-worst by recommender.py
+      setAlgos(ranked.map((r: any, idx: number) => ({
+        id: r.strategy.toLowerCase().replace(/\s+/g, '_'),
+        name: r.strategy,
+        shortName: r.strategy.slice(0, 4).toUpperCase(),
+        category: 'trend',
+        description: r.best_for,
+        winRate: r.win_ratio,
+        avgReturn: r.profit_pct,
+        maxDrawdown: Math.abs(r.max_drawdown),
+        sharpe: r.sharpe,
+        score: r.score,
+        rank: idx + 1,
+        signals: [],
+      })));
       setAiDone(true);
-      const top = ranked[0];
-      setSelectedAlgo(ALGORITHMS.find(a => a.id === top.id) ?? null);
+      setSelectedAlgo({
+        id: ranked[0].strategy.toLowerCase().replace(/\s+/g, '_'),
+        name: ranked[0].strategy,
+        shortName: ranked[0].strategy.slice(0,4).toUpperCase(),
+        category: 'trend',
+        description: ranked[0].best_for,
+        winRate: ranked[0].win_ratio,
+        avgReturn: ranked[0].profit_pct,
+        maxDrawdown: Math.abs(ranked[0].max_drawdown),
+        sharpe: ranked[0].sharpe,
+        signals: [],
+      });
+      const top = { name: ranked[0].strategy, score: ranked[0].score };
       pushSignal({ time: new Date().toLocaleTimeString('en-US',{hour12:false}), algo: 'AI', symbol: activeSym, type: 'AI', message: `AI Recommendation: "${top.name}" ranked #1 for ${activeSym}. Score: ${top.score}/100` });
       showToast(`AI ranked "${top.name}" #1 for ${activeSym}`, '#5AC8FA');
     } catch (e: unknown) {
@@ -377,7 +400,13 @@ export default function TradingTerminal() {
     // Fake progress bar while waiting
     const prog = setInterval(() => setBtProgress(p => Math.min(p + 6, 92)), 150);
     try {
-      const result = await Backtest.run({ symbol: activeSym, algoId: selectedAlgo.id, period: '2y' });
+      const result = await apiRunBacktest({
+        symbol: activeSym,
+        strategy: selectedAlgo.name,
+        period: '2y',
+        interval: '1d',
+        initial_balance: 10000,
+      });
       clearInterval(prog); setBtProgress(100);
       setBtResult(result as unknown as Record<string,unknown>);
       pushSignal({

@@ -64,7 +64,7 @@ export default function LiveChart({ symbol }: Props) {
     async function loadCandles() {
       try {
         const token =
-          localStorage.getItem('token');
+          localStorage.getItem('access_token');
 
         const res = await fetch(
           `http://localhost:5000/market/candles/${symbol}?tf=15m`,

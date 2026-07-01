@@ -22,7 +22,7 @@ export default function LoginPage() {
 
       if (data.access_token) {
         saveToken(data.access_token);
-        router.push("/Backtest");            // redirect to home after login
+        router.push("/LiveTrading");            // redirect to home after login
       } else {
         setError(data.error || "Login failed");
       }

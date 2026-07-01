@@ -55,7 +55,8 @@ export default function BacktestSidebar({ onRun, loading }: Props) {
   };
 
   return (
-    <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-5 h-full">
+    <div className="rounded-2xl p-5 h-full"
+      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
       <h2 className="text-xl font-semibold mb-5">Strategy Settings</h2>
 
       {/* Strategy Name */}
@@ -64,10 +65,32 @@ export default function BacktestSidebar({ onRun, loading }: Props) {
         <select
           value={strategy}
           onChange={(e) => setStrategy(e.target.value)}
-          className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 outline-none focus:border-blue-500"
+          className="w-full rounded-xl px-4 py-3 outline-none"
+style=    {{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#E6EAF2' }}
         >
-          <option>Golden Cross</option>
-          <option>RSI</option>
+            <option style={{ background: '#0A0E18', color: '#E6EAF2' }}>Golden Cross</option>
+            <option style={{ background: '#0A0E18', color: '#E6EAF2' }}>RSI</option>
+            <option style={{ background: '#0A0E18', color: '#E6EAF2' }}>Death Cross</option>
+            <option style={{ background: '#0A0E18', color: '#E6EAF2' }}>EMA Cross</option>
+            <option style={{ background: '#0A0E18', color: '#E6EAF2' }}>Triple MA</option>
+            <option style={{ background: '#0A0E18', color: '#E6EAF2' }}>EMA Ribbon</option>
+            <option style={{ background: '#0A0E18', color: '#E6EAF2' }}>MACD Cross</option>
+            <option style={{ background: '#0A0E18', color: '#E6EAF2' }}>MACD Zero Line</option>
+            <option style={{ background: '#0A0E18', color: '#E6EAF2' }}>Momentum Burst</option>
+            <option style={{ background: '#0A0E18', color: '#E6EAF2' }}>ROC Strategy</option>
+            <option style={{ background: '#0A0E18', color: '#E6EAF2' }}>Price Breakout</option>
+            <option style={{ background: '#0A0E18', color: '#E6EAF2' }}>Donchian Breakout</option>
+            <option style={{ background: '#0A0E18', color: '#E6EAF2' }}>Bollinger Bands</option>
+            <option style={{ background: '#0A0E18', color: '#E6EAF2' }}>Bollinger Squeeze</option>
+            <option style={{ background: '#0A0E18', color: '#E6EAF2' }}>VWAP Cross</option>
+            <option style={{ background: '#0A0E18', color: '#E6EAF2' }}>VWAP Bounce</option>
+            <option style={{ background: '#0A0E18', color: '#E6EAF2' }}>ATR Breakout</option>
+            <option style={{ background: '#0A0E18', color: '#E6EAF2' }}>Stochastic</option>
+            <option style={{ background: '#0A0E18', color: '#E6EAF2' }}>ZScore Reversion</option>
+            <option style={{ background: '#0A0E18', color: '#E6EAF2' }}>ADX Strategy</option>
+            <option style={{ background: '#0A0E18', color: '#E6EAF2' }}>Volume Spike Breakout</option>
+            <option style={{ background: '#0A0E18', color: '#E6EAF2' }}>SuperTrend</option>
+            <option style={{ background: '#0A0E18', color: '#E6EAF2' }}>AI Ensemble</option>
         </select>
       </div>
 
@@ -79,7 +102,8 @@ export default function BacktestSidebar({ onRun, loading }: Props) {
           placeholder="e.g. TCS.NS"
           value={symbol}
           onChange={(e) => setSymbol(e.target.value)}
-          className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 outline-none focus:border-blue-500"
+          className="w-full rounded-xl px-4 py-3 outline-none"
+style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#E6EAF2' }}
         />
       </div>
 
@@ -90,7 +114,8 @@ export default function BacktestSidebar({ onRun, loading }: Props) {
           type="number"
           value={capital}
           onChange={(e) => setCapital(Number(e.target.value))}
-          className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 outline-none focus:border-blue-500"
+          className="w-full rounded-xl px-4 py-3 outline-none"
+style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#E6EAF2' }}
         />
       </div>
 
@@ -122,7 +147,8 @@ export default function BacktestSidebar({ onRun, loading }: Props) {
         <select
           value={timeframe}
           onChange={(e) => setTimeframe(e.target.value)}
-          className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 outline-none focus:border-blue-500"
+          className="w-full rounded-xl px-4 py-3 outline-none"
+style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#E6EAF2' }}
         >
           <option>1 Minute</option>
           <option>5 Minute</option>
@@ -135,7 +161,8 @@ export default function BacktestSidebar({ onRun, loading }: Props) {
       <button
         onClick={handleRun}
         disabled={loading || !symbol}
-        className="w-full bg-blue-600 hover:bg-blue-500 transition rounded-xl py-3 font-medium disabled:opacity-50"
+        className="w-full transition rounded-xl py-3 font-medium disabled:opacity-50"
+style={{ background: '#00FF88', color: '#05070D' }}
       >
         {loading ? "Running..." : "Run Strategy"}
       </button>

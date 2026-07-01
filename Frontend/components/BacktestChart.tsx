@@ -21,7 +21,7 @@ export default function BacktestChart({
   loading,
 }: Props) {
   // sample every 10th point
-  const points = equityCurve.filter((_, i) => i % 10 === 0) || [];
+  const points = (equityCurve ?? []).filter((_, i) => i % 10 === 0) || [];
 
   // build SVG path from data
   const buildPath = () => {
