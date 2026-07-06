@@ -26,16 +26,15 @@ export default function Navbar() {
         </a>
 
         <ul className={styles.links}>
-          {(['Platform', 'Strategies', 'Performance', 'Pricing', 'Docs'] as const).map(item => (
-            <li key={item}>
-              <a href={`#${item.toLowerCase()}`}>{item}</a>
-            </li>
-          ))}
+          <a href="/Backtest" className={styles.btnGhost}>Backtest</a>
+          <a href="/About" className={styles.btnGhost}>About</a>
         </ul>
+
 
         <div className={styles.actions}>
           <a href="#" className={styles.btnGhost}>Sign In</a>
-          <a href="#" className={styles.btnPrimary}>Start Free Trial</a>
+          <a href="#" className={styles.btnGhost}>Start Free Trial</a>
+          <a href="/Profile" className={styles.btnGhost}>My Profile</a>
         </div>
 
         <button

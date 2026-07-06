@@ -205,21 +205,8 @@ export default function Home() {
                 strategies across equities, crypto, and derivatives — with sub-millisecond latency.
               </p>
               <div className={styles.heroCta}>
-                <a href="/terminal" className={styles.ctaPrimary}>🖥 Open Paper Trading Terminal</a>
-                <a href="/recommend" className={styles.ctaSecondary}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  AI Strategy Recommendation
-                </a>
-              </div>
-              <div className={styles.heroTrust}>
-                <span className={styles.trustLabel}>Trusted by traders at</span>
-                <div className={styles.trustLogos}>
-                  {['Citadel', 'Two Sigma', 'Virtu', 'DRW'].map(name => (
-                    <span key={name} className={styles.trustLogo}>{name}</span>
-                  ))}
-                </div>
+                <a href="/terminal" className={styles.ctaPrimary}>🖥 Open Terminal</a>
+                <a href="/recommend" className={styles.ctaSecondary}> AI Strategy Recommendation</a>
               </div>
             </div>
 

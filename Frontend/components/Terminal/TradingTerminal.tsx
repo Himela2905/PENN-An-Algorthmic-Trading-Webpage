@@ -7,7 +7,7 @@ import type { Algorithm, Order, Position, SignalLog, BotStatus, OrderSide, Order
 
 // REPLACE WITH:
 import {
-  Market, Orders, Recommend, Bot, FyersAuth,runBacktest as apiRunBacktest,
+  Market, Orders, recommend, Bot, FyersAuth,runBacktest as apiRunBacktest,
   connectPriceWS, connectSignalWS,
   type Candle, type QuoteData, type OrderData, type PositionData,
 } from '@/lib/liveApi';
@@ -354,7 +354,7 @@ export default function TradingTerminal() {
     setAiRunning(true); setAiDone(false);
     pushSignal({ time: new Date().toLocaleTimeString('en-US',{hour12:false}), algo: 'AI', symbol: activeSym, type: 'AI', message: `Running AI backtest on 20 algorithms for ${activeSym}...` });
     try {
-      const result = await Recommend.full({ symbol: activeSym, period: '2y' });
+      const result = await recommend.full({ symbol: activeSym, period: '2y' });
       const ranked = result.all_strategies;  // already sorted best-to-worst by recommender.py
       setAlgos(ranked.map((r: any, idx: number) => ({
         id: r.strategy.toLowerCase().replace(/\s+/g, '_'),

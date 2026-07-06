@@ -173,15 +173,33 @@
 .ctaSecondary {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
+  gap: 10px;
+  padding: 14px 28px;              /* Adjusted padding for a sleeker profile */
+  
+  /* Glassmorphism & Colors */
+  background-color: rgba(255, 255, 255, 0.05); /* Translucent dark tint */
+  color: #ffffff;                  /* Crisp white text */
+  font-size: 1rem;
   font-weight: 500;
-  color: var(--text-secondary);
-  transition: color 0.2s;
+  text-decoration: none;
+  
+  /* Borders matched to your vibrant theme */
+  border: 1px solid rgba(255, 153, 0, 0.3); /* Subtle green border */
+  border-radius: 6px;              /* Slightly sharper corners for premium look */
+  
+  /* Smooth backdrop blur effect */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .ctaSecondary:hover {
-  color: var(--text-primary);
+  background-color: rgba(255, 153, 0, 0.1);  /* Glow-in background tint */
+  border-color: rgb(255, 140, 0);        /* Brighten border on hover */
+  box-shadow: 0 0 20px rgba(234, 151, 42, 0.451); /* Sleek neon terminal glow */
+  transform: translateY(-1px);
 }
 
 .ctaOutline {
