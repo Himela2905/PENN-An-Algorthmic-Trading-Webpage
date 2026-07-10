@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Live Terminal — QuantEdge',
+  title: 'Live Terminal — PENN',
   description: 'Algorithmic live trading terminal',
 };
 

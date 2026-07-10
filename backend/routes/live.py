@@ -47,26 +47,28 @@ def start_live():
 @live_bp.route("/stop", methods=["POST"])
 @jwt_required()
 def stop_live():
-
-    live_engine.stop()
-
-    return jsonify({
-        "success": True,
-        "message": "Live trading stopped"
-    })
+    data     = request.get_json() or {}
+    symbol   = data.get("symbol")
+    strategy = data.get("strategy")
+    live_engine.stop(symbol=symbol, strategy_name=strategy)
+    return jsonify({"success": True, 
+                    "message": "Stopped"})
 
 
 @live_bp.route("/status", methods=["GET"])
 @jwt_required()
 def status():
-
+    engines_list = [
+        {"symbol": s["symbol"], "strategy": s["strategy_name"], "running": s["running"]}
+        for s in live_engine.engines.values()
+    ]
     return jsonify({
-        "running": live_engine.running,
-        "symbol": live_engine.symbol,
-        "strategy": live_engine.strategy_name,
-        "qty": live_engine.qty
+        "running":  len(live_engine.engines) > 0,
+        "engines":  engines_list,
+        "symbol":   engines_list[0]["symbol"]   if engines_list else None,
+        "strategy": engines_list[0]["strategy"] if engines_list else None,
+        "qty":      1,
     })
-
 
 @live_bp.route("/positions", methods=["GET"])
 @jwt_required()
@@ -102,3 +104,13 @@ def stats():
     return jsonify(
         live_engine.get_stats()
     )
+
+
+@live_bp.route("/inject-test", methods=["POST"])
+@jwt_required()
+def inject_test():
+    data     = request.get_json() or {}
+    symbol   = data.get("symbol", "RELIANCE.NS")
+    strategy = data.get("strategy", "RSI")
+    live_engine.inject_test_trade(symbol, strategy)
+    return jsonify({"ok": True, "message": f"Test trade injected for {symbol}"})

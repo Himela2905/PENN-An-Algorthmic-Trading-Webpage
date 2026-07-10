@@ -165,24 +165,42 @@ export const runBacktest = async (payload: {
   return res.json();
 };
 // add to liveApi.ts
-
 export const Market = {
-  watchlist: async (symbols: string[]) => {
-    try {
-      const res = await fetch(`${API}/market/watchlist?symbols=${symbols.join(',')}`, { headers: headers() });
-      if (!res.ok) throw new Error('failed');
-      return res.json();
-    } catch {
-      return { quotes: [] };  // safe fallback, no crash
-    }
-  },
   candles: async (symbol: string, tf: string) => {
     try {
-      const res = await fetch(`${API}/market/candles?symbol=${symbol}&tf=${tf}`, { headers: headers() });
+      const res = await fetch(`${API}/market/candles/${symbol}?tf=${tf}`, {
+        headers: headers(),
+      });
       if (!res.ok) throw new Error('failed');
       return res.json();
     } catch {
       return { candles: [] };
+    }
+  },
+
+  watchlist: async (symbols: string[]) => {
+    try {
+      const res = await fetch(`${API}/market/watchlist`, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ symbols }),
+      });
+      if (!res.ok) throw new Error('failed');
+      return res.json();
+    } catch {
+      return { quotes: [] };
+    }
+  },
+
+  quote: async (symbol: string) => {
+    try {
+      const res = await fetch(`${API}/market/quote/${symbol}`, {
+        headers: headers(),
+      });
+      if (!res.ok) throw new Error('failed');
+      return res.json();
+    } catch {
+      return {};
     }
   },
 };

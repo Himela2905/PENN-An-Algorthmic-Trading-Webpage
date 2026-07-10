@@ -1,20 +1,29 @@
-from strategy import *
+from flask import signals
+
+from strategy import STRATEGY_REGISTRY
+import pandas as pd
+
+from strategy import STRATEGY_REGISTRY
 
 class StrategyRunner:
 
     @staticmethod
-    def get_signal(strategy_name, df):
+    def get_signal(strategy_name: str, df) -> int:
+        if strategy_name not in STRATEGY_REGISTRY:
+            print(f"[StrategyRunner] Unknown strategy: {strategy_name}")
+            return 0  # HOLD, never crash
 
-        strategy_map = {
-            "Golden Cross": lambda d: GoldenCross(d,50,20),
-            "RSI": lambda d: RSI_Strategy(d),
-            "EMA Cross": lambda d: EMA_Cross(d),
-            "MACD Cross": lambda d: MACD_Cross(d),
-            "SuperTrend": lambda d: SuperTrend(d),
-        }
+        try:
+            strategy = STRATEGY_REGISTRY[strategy_name](df.copy())
+            result   = strategy.generate_signals()
+            signals = result[result["signal"] != 0]
+            print(signals[["close", "signal"]].tail(10))
 
-        strategy = strategy_map[strategy_name](df)
-
-        result = strategy.generate_signals()
-
-        return int(result["signal"].iloc[-1])
+            print("\n===== Strategy Debug =====")
+            print(result[["close", "rsi", "signal"]].tail(5))
+            print("==========================\n")
+            signal   = result["signal"].iloc[-1]
+            return 0 if pd.isna(signal) else int(signal)
+        except Exception as e:
+            print(f"[StrategyRunner] Error running {strategy_name}: {e}")
+            return 0

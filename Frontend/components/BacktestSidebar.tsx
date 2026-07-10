@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+/*import SymbolSearchInput from './SymbolSearchInput';*/
 
 interface Props {
   onRun: (payload: {
