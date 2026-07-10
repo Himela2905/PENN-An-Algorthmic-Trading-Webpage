@@ -19,9 +19,7 @@ class StrategyRunner:
             signals = result[result["signal"] != 0]
             print(signals[["close", "signal"]].tail(10))
 
-            print("\n===== Strategy Debug =====")
-            print(result[["close", "rsi", "signal"]].tail(5))
-            print("==========================\n")
+            
             signal   = result["signal"].iloc[-1]
             return 0 if pd.isna(signal) else int(signal)
         except Exception as e:

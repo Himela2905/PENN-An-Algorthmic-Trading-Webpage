@@ -1,549 +1,267 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useRef } from "react";
-import {
-  User,
-  Mail,
-  Shield,
-  ShieldCheck,
-  Calendar,
-  Globe,
-  Key,
-  Copy,
-  Check,
-  Pencil,
-  TrendingUp,
-  TrendingDown,
-  Link2,
-  LogOut,
-  Play,
-  Pause,
-  Square,
-  Webhook,
-  RefreshCw,
-  ActivitySquare,
-  Gauge,
-} from "lucide-react";
+import { useEffect, useState } from 'react';
 
-/**
- * Penn — Trader Profile
- * Palette pulled from the marketing site: near-black canvas, mint/teal
- * signature accent, monospace used for anything numeric or system-generated
- * (prices, keys, logs) — sans-serif reserved for labels and prose.
- */
+const API   = 'http://localhost:5000';
+const token = () => localStorage.getItem('access_token') ?? '';
+const auth  = () => ({ Authorization: `Bearer ${token()}` });
+const CURRENCY = '₹';
+const fmtN = (n: number, d = 2) =>
+  n.toLocaleString('en-IN', { minimumFractionDigits: d, maximumFractionDigits: d });
 
-// ---------------------------------------------------------------------------
-// Mock data — replace with real account/session/strategy data on integration.
-// ---------------------------------------------------------------------------
+export default function PortfolioPage() {
+  const [status,   setStatus]   = useState<any>(null);
+  const [pnl,      setPnl]      = useState<any>(null);
+  const [trades,   setTrades]   = useState<any[]>([]);
+  const [positions, setPositions] = useState<any[]>([]);
+  const [loading,  setLoading]  = useState(true);
+  const [user, setUser] = useState<any>(null);
 
-const USER = {
-  name: "Arindam Basak",
-  handle: "@arindam.b",
-  email: "arindam.basak@pennquant.io",
-  plan: "Quant Pro",
-  memberSince: "Feb 2025",
-  timezone: "Asia/Kolkata (UTC+5:30)",
-  baseCurrency: "USD",
-  kycStatus: "Verified",
-  twoFactor: true,
-};
-
-const PERFORMANCE = [
-  { label: "Portfolio Value", value: "$284,912.40", delta: "+2.4%", up: true },
-  { label: "Net P&L (30d)", value: "$18,204.10", delta: "+6.8%", up: true },
-  { label: "Sharpe Ratio", value: "1.94", delta: "+0.12", up: true },
-  { label: "Max Drawdown", value: "-4.7%", delta: "limit -8.0%", up: true },
-  { label: "Win Rate", value: "63.2%", delta: "-1.1%", up: false },
-  { label: "Avg Fill Latency", value: "38ms", delta: "-6ms", up: true },
-];
-
-const STRATEGIES = [
-  {
-    name: "BTC Momentum v3",
-    instrument: "BTC/USDT",
-    status: "running" as const,
-    pnl: "+$4,812.20",
-    up: true,
-    allocation: "22%",
-    sharpe: "2.1",
-  },
-  {
-    name: "NVDA Mean Reversion",
-    instrument: "NASDAQ",
-    status: "running" as const,
-    pnl: "+$2,340.55",
-    up: true,
-    allocation: "18%",
-    sharpe: "1.6",
-  },
-  {
-    name: "ETH Breakout",
-    instrument: "ETH/USDT",
-    status: "paused" as const,
-    pnl: "-$310.00",
-    up: false,
-    allocation: "9%",
-    sharpe: "0.8",
-  },
-  {
-    name: "SPY Pairs Hedge",
-    instrument: "SPY / QQQ",
-    status: "stopped" as const,
-    pnl: "+$980.40",
-    up: true,
-    allocation: "0%",
-    sharpe: "1.1",
-  },
-];
-
-const EXCHANGES = [
-  { name: "Binance", status: "Connected", latency: "42ms" },
-  { name: "NASDAQ (via IBKR)", status: "Connected", latency: "11ms" },
-  { name: "Coinbase", status: "Not connected", latency: "—" },
-];
-
-const RISK_LIMITS = [
-  { label: "Max drawdown limit", value: "-8.0%" },
-  { label: "Max position size", value: "$50,000" },
-  { label: "Max leverage", value: "3.0x" },
-  { label: "Slippage tolerance", value: "0.15%" },
-];
-
-const LOG_LINES = [
-  "SIGNAL BUY BTC/USDT @ 67,842.50 QTY: 0.15",
-  "ORDER SENT exchange=BINANCE id=ord_8a2f",
-  "FILL 100% price=67,843.10 slippage=+0.60",
-  "SIGNAL SELL NVDA @ 875.30 QTY: 120",
-  "ORDER SENT exchange=NASDAQ id=ord_9c1e",
-  "FILL 100% price=875.25 slippage=-0.05",
-  "RISK CHECK drawdown=-1.2% limit=-8.0% OK",
-  "SIGNAL BUY ETH/USDT @ 3,521.18 QTY: 2.5",
-  "STRATEGY paused ETH Breakout — manual override",
-  "SIGNAL SELL SPY @ 538.72 QTY: 40",
-];
-
-// ---------------------------------------------------------------------------
-
-function initials(name: string) {
-  return name
-    .split(" ")
-    .map((p) => p[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
-
-function timestamp() {
-  const d = new Date();
-  return d.toTimeString().slice(0, 8);
-}
-
-function PerfCard({
-  label,
-  value,
-  delta,
-  up,
-}: {
-  label: string;
-  value: string;
-  delta: string;
-  up: boolean;
-}) {
-  return (
-    <div className="rounded-lg border border-white/[0.08] bg-white/[0.02] p-4">
-      <p className="text-[11px] uppercase tracking-wider text-slate-500">
-        {label}
-      </p>
-      <div className="mt-2 flex items-end justify-between">
-        <span className="font-mono text-xl text-slate-100">{value}</span>
-        <span
-          className={`flex items-center gap-1 text-xs font-mono ${
-            up ? "text-[#2FE6A6]" : "text-rose-400"
-          }`}
-        >
-          {up ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-          {delta}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function InfoRow({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex items-center justify-between border-b border-white/[0.06] py-3 last:border-0">
-      <div className="flex items-center gap-2.5 text-slate-500">
-        <Icon size={15} strokeWidth={1.75} />
-        <span className="text-sm">{label}</span>
-      </div>
-      <span className="text-sm font-mono text-slate-200">{value}</span>
-    </div>
-  );
-}
-
-function StatusPill({ status }: { status: "running" | "paused" | "stopped" }) {
-  const map = {
-    running: { icon: Play, cls: "bg-[#2FE6A6]/10 text-[#2FE6A6]", label: "Running" },
-    paused: { icon: Pause, cls: "bg-amber-400/10 text-amber-300", label: "Paused" },
-    stopped: { icon: Square, cls: "bg-slate-500/10 text-slate-400", label: "Stopped" },
-  }[status];
-  const Icon = map.icon;
-  return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${map.cls}`}
-    >
-      <Icon size={10} />
-      {map.label}
-    </span>
-  );
-}
-
-export default function ProfilePage() {
-  const [copiedKey, setCopiedKey] = useState(false);
-  const [copiedHook, setCopiedHook] = useState(false);
-  const [lines, setLines] = useState(
-    LOG_LINES.slice(0, 5).map((l) => ({ time: timestamp(), text: l }))
-  );
-  const logRef = useRef<HTMLDivElement>(null);
-  const apiKey = "pk_live_8f2c1d4a9e7b0031";
-  const webhookUrl = "https://hooks.pennquant.io/v1/signals/8a2f9c1e";
-
-  // Lightweight ambient tick to echo the live signal feed from the homepage.
   useEffect(() => {
-    let i = 5;
-    const id = setInterval(() => {
-      setLines((prev) => {
-        const next = [
-          ...prev,
-          { time: timestamp(), text: LOG_LINES[i % LOG_LINES.length] },
-        ].slice(-8);
-        i += 1;
-        return next;
-      });
-    }, 2600);
+    async function load() {
+      try {
+        const [sr, pr, tr, posr,ur] = await Promise.all([
+          fetch(`${API}/live/status`,    { headers: auth() }),
+          fetch(`${API}/live/pnl`,       { headers: auth() }),
+          fetch(`${API}/live/trades`,    { headers: auth() }),
+          fetch(`${API}/live/positions`, { headers: auth() }),
+          fetch(`${API}/auth/me`, { headers: auth() }),
+        ]);
+        const [sd, pd, td, posd, ud] = await Promise.all([
+          sr.json(), pr.json(), tr.json(), posr.json(), ur.json(),
+        ]);
+        setStatus(sd);
+        setPnl(pd);
+        setTrades(td.trades || []);
+        setPositions(posd.positions || []);
+        setUser(ud.user);
+      } catch (e) {
+        console.log('Portfolio load failed', e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+    const id = setInterval(load, 10000);
     return () => clearInterval(id);
   }, []);
 
-  useEffect(() => {
-    logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
-  }, [lines]);
-
-  const copy = (text: string, setter: (v: boolean) => void) => {
-    setter(true);
-    window.setTimeout(() => setter(false), 1500);
-  };
+  const totalPnl    = pnl?.pnl ?? 0;
+  const totalEquity = pnl?.total_equity ?? 100000;
+  const winTrades   = trades.filter((_, i) => i % 2 === 0).length; // simplified
+  const winRate     = trades.length > 0 ? Math.round((winTrades / trades.length) * 100) : 0;
 
   return (
-    <div className="min-h-screen w-full bg-[#0a0d0f] text-slate-100">
-      {/* Top bar — mirrors the marketing site header */}
-      <header className="flex items-center justify-between border-b border-white/10 px-6 py-4 sm:px-10">
-        <div className="flex items-center gap-2">
-          <TrendingUp size={20} className="text-[#2FE6A6]" />
-          <span className="text-lg font-semibold tracking-tight">Penn</span>
-        </div>
-        <nav className="hidden items-center gap-8 text-sm text-slate-400 sm:flex">
-          <a href="#" className="hover:text-slate-200 transition-colors">
-            Backtest
-          </a>
-          <a href="#" className="hover:text-slate-200 transition-colors">
-            About
-          </a>
-        </nav>
-        <button className="flex items-center gap-2 rounded-md border border-white/10 px-3 py-1.5 text-sm text-slate-300 hover:border-white/20 hover:text-white transition-colors">
-          <LogOut size={14} />
-          Sign out
-        </button>
-      </header>
+    <main style={{ background: '#05070D', minHeight: '100vh', color: '#E6EAF2', padding: '40px 24px' }}>
 
-      <main className="mx-auto max-w-6xl px-6 py-10 sm:px-10">
-        {/* Identity card */}
-        <section className="flex flex-col gap-6 rounded-xl border border-white/10 bg-white/[0.02] p-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#2FE6A6]/20 to-[#2FE6A6]/5 text-lg font-semibold text-[#2FE6A6] ring-1 ring-[#2FE6A6]/30">
-              {initials(USER.name)}
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-semibold">{USER.name}</h1>
-                <span className="rounded-full bg-[#2FE6A6]/10 px-2 py-0.5 text-[11px] font-medium text-[#2FE6A6] ring-1 ring-[#2FE6A6]/20">
-                  {USER.plan}
-                </span>
-              </div>
-              <p className="mt-0.5 text-sm text-slate-500">{USER.handle}</p>
-              <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-600">
-                <Calendar size={12} />
-                Member since {USER.memberSince}
-              </p>
-            </div>
-          </div>
-          <button className="flex items-center justify-center gap-2 rounded-md border border-white/15 px-4 py-2 text-sm text-slate-200 hover:bg-white/5 transition-colors">
-            <Pencil size={14} />
-            Edit profile
-          </button>
-        </section>
+      {/* glow */}
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
+        background: 'radial-gradient(600px circle at 15% 20%, rgba(0,255,136,0.06), transparent 60%)',
+      }} />
 
-        {/* Performance overview */}
-        <section className="mt-6">
-          <div className="mb-3 flex items-center gap-2 text-slate-500">
-            <Gauge size={14} />
-            <h2 className="text-sm font-semibold text-slate-300">
-              Performance overview
-            </h2>
-          </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            {PERFORMANCE.map((s) => (
-              <PerfCard key={s.label} {...s} />
-            ))}
-          </div>
-        </section>
+      <div style={{ position: 'relative', zIndex: 1, maxWidth: 1000, margin: '0 auto' }}>
 
-        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* Left column */}
-          <div className="space-y-6 lg:col-span-2">
-            {/* Strategies */}
-            <section className="rounded-xl border border-white/10 bg-white/[0.02] p-5">
-              <div className="mb-3 flex items-center justify-between">
-                <div>
-                  <h2 className="text-sm font-semibold text-slate-200">
-                    Active strategies
-                  </h2>
-                  <p className="text-xs text-slate-500">
-                    Deployed algorithms currently allocated capital.
-                  </p>
-                </div>
-                <button className="rounded-md border border-white/10 px-3 py-1.5 text-xs text-slate-300 hover:border-white/20 hover:text-white transition-colors">
-                  Deploy new
-                </button>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead>
-                    <tr className="text-[11px] uppercase tracking-wider text-slate-500">
-                      <th className="pb-2 font-medium">Strategy</th>
-                      <th className="pb-2 font-medium">Instrument</th>
-                      <th className="pb-2 font-medium">Status</th>
-                      <th className="pb-2 font-medium">Alloc.</th>
-                      <th className="pb-2 font-medium">Sharpe</th>
-                      <th className="pb-2 text-right font-medium">P&amp;L</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {STRATEGIES.map((s) => (
-                      <tr
-                        key={s.name}
-                        className="border-t border-white/[0.06]"
-                      >
-                        <td className="py-2.5 text-slate-200">{s.name}</td>
-                        <td className="py-2.5 font-mono text-xs text-slate-400">
-                          {s.instrument}
-                        </td>
-                        <td className="py-2.5">
-                          <StatusPill status={s.status} />
-                        </td>
-                        <td className="py-2.5 font-mono text-xs text-slate-400">
-                          {s.allocation}
-                        </td>
-                        <td className="py-2.5 font-mono text-xs text-slate-400">
-                          {s.sharpe}
-                        </td>
-                        <td
-                          className={`py-2.5 text-right font-mono text-xs ${
-                            s.up ? "text-[#2FE6A6]" : "text-rose-400"
-                          }`}
-                        >
-                          {s.pnl}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
+            <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Portfolio</h1>
+            <p style={{ color: '#8A93A8', marginBottom: 32, fontSize: 14 }}>
+              Current session performance
+            </p>
+            <div
+  style={{
+    background: 'rgba(255,255,255,0.03)',
+    border: '1px solid rgba(255,255,255,0.08)',
+    borderRadius: 14,
+    padding: '24px',
+    marginBottom: 28,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 24,
+  }}
+>
+  {/* Avatar */}
+  <div
+    style={{
+      width: 72,
+      height: 72,
+      borderRadius: '50%',
+      background: 'linear-gradient(135deg,#00FF88,#00C26E)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: 30,
+      fontWeight: 700,
+      color: '#05070D',
+      flexShrink: 0,
+    }}
+  >
+    {user?.name?.charAt(0).toUpperCase()}
+  </div>
 
-            {/* Risk & execution settings */}
-            <section className="rounded-xl border border-white/10 bg-white/[0.02] p-5">
-              <h2 className="mb-1 text-sm font-semibold text-slate-200">
-                Risk &amp; execution limits
-              </h2>
-              <p className="mb-3 text-xs text-slate-500">
-                Global guardrails enforced across every strategy before an
-                order reaches the exchange.
-              </p>
-              <div className="grid grid-cols-2 gap-x-6 sm:grid-cols-4">
-                {RISK_LIMITS.map((r) => (
-                  <div key={r.label} className="py-2">
-                    <p className="text-[11px] uppercase tracking-wider text-slate-500">
-                      {r.label}
-                    </p>
-                    <p className="mt-1 font-mono text-sm text-slate-200">
-                      {r.value}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </section>
+  {/* User Details */}
+  <div style={{ flex: 1 }}>
+    <h2
+      style={{
+        margin: 0,
+        fontSize: 22,
+        fontWeight: 700,
+        color: '#E6EAF2',
+      }}
+    >
+      {user?.name}
+    </h2>
 
-            {/* Exchanges */}
-            <section className="rounded-xl border border-white/10 bg-white/[0.02] p-5">
-              <div className="mb-3 flex items-center justify-between">
-                <div>
-                  <h2 className="text-sm font-semibold text-slate-200">
-                    Connected exchanges
-                  </h2>
-                  <p className="text-xs text-slate-500">
-                    Live venues linked to your execution account.
-                  </p>
-                </div>
-                <button className="text-xs text-[#2FE6A6] hover:text-[#5cf0bd]">
-                  Manage
-                </button>
-              </div>
-              <div className="space-y-2">
-                {EXCHANGES.map((ex) => (
-                  <div
-                    key={ex.name}
-                    className="flex items-center justify-between rounded-md border border-white/[0.06] px-3 py-2.5"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <Link2 size={14} className="text-slate-500" />
-                      <span className="text-sm text-slate-200">{ex.name}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-mono text-xs text-slate-500">
-                        {ex.latency}
-                      </span>
-                      <span
-                        className={`text-xs font-medium ${
-                          ex.status === "Connected"
-                            ? "text-[#2FE6A6]"
-                            : "text-slate-500"
-                        }`}
-                      >
-                        {ex.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          </div>
+    <p
+      style={{
+        marginTop: 6,
+        color: '#8A93A8',
+        fontSize: 14,
+      }}
+    >
+      {user?.email}
+    </p>
 
-          {/* Right column */}
-          <div className="space-y-6">
-            {/* API & webhooks */}
-            <section className="rounded-xl border border-white/10 bg-white/[0.02] p-5">
-              <h2 className="mb-1 text-sm font-semibold text-slate-200">
-                API &amp; webhooks
-              </h2>
-              <p className="mb-3 text-xs text-slate-500">
-                Credentials used by your bots and signal sources.
-              </p>
+    <div
+      style={{
+        display: 'flex',
+        gap: 14,
+        marginTop: 16,
+        flexWrap: 'wrap',
+      }}
+    >
+      <span
+        style={{
+          background: 'rgba(0,255,136,0.12)',
+          color: '#00FF88',
+          padding: '6px 14px',
+          borderRadius: 20,
+          fontSize: 12,
+          fontWeight: 600,
+        }}
+      >
+        ● Demo Account
+      </span>
 
-              <div className="py-2">
-                <div className="mb-2 flex items-center gap-2.5 text-slate-500">
-                  <Key size={15} strokeWidth={1.75} />
-                  <span className="text-sm">API key</span>
-                </div>
-                <div className="flex items-center justify-between rounded-md bg-black/40 px-3 py-2 font-mono text-xs text-slate-300">
-                  <span>{apiKey}</span>
-                  <button
-                    onClick={() => copy(apiKey, setCopiedKey)}
-                    className="text-slate-500 hover:text-[#2FE6A6] transition-colors"
-                    aria-label="Copy API key"
-                  >
-                    {copiedKey ? <Check size={14} /> : <Copy size={14} />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="py-2">
-                <div className="mb-2 flex items-center gap-2.5 text-slate-500">
-                  <Webhook size={15} strokeWidth={1.75} />
-                  <span className="text-sm">Signal webhook</span>
-                </div>
-                <div className="flex items-center justify-between rounded-md bg-black/40 px-3 py-2 font-mono text-xs text-slate-300">
-                  <span className="truncate">{webhookUrl}</span>
-                  <button
-                    onClick={() => copy(webhookUrl, setCopiedHook)}
-                    className="ml-2 shrink-0 text-slate-500 hover:text-[#2FE6A6] transition-colors"
-                    aria-label="Copy webhook URL"
-                  >
-                    {copiedHook ? <Check size={14} /> : <Copy size={14} />}
-                  </button>
-                </div>
-              </div>
-
-              <button className="mt-2 flex w-full items-center justify-center gap-2 rounded-md border border-white/10 py-2 text-xs text-slate-300 hover:border-white/20 hover:text-white transition-colors">
-                <RefreshCw size={12} />
-                Rotate credentials
-              </button>
-            </section>
-
-            {/* Security */}
-            <section className="rounded-xl border border-white/10 bg-white/[0.02] p-5">
-              <h2 className="mb-1 text-sm font-semibold text-slate-200">
-                Security
-              </h2>
-              <InfoRow icon={Mail} label="Email" value={USER.email} />
-              <InfoRow icon={Globe} label="Timezone" value={USER.timezone} />
-              <InfoRow
-                icon={User}
-                label="Base currency"
-                value={USER.baseCurrency}
-              />
-              <InfoRow
-                icon={ShieldCheck}
-                label="KYC status"
-                value={USER.kycStatus}
-              />
-              <div className="flex items-center justify-between py-3">
-                <div className="flex items-center gap-2.5 text-slate-500">
-                  <Shield size={15} strokeWidth={1.75} />
-                  <span className="text-sm">Two-factor auth</span>
-                </div>
-                <span
-                  className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                    USER.twoFactor
-                      ? "bg-[#2FE6A6]/10 text-[#2FE6A6]"
-                      : "bg-rose-400/10 text-rose-300"
-                  }`}
-                >
-                  {USER.twoFactor ? "Enabled" : "Disabled"}
-                </span>
-              </div>
-            </section>
-
-            {/* Live execution log — signature element, echoes homepage feed */}
-            <section className="rounded-xl border border-white/10 bg-white/[0.02] p-5">
-              <div className="mb-2 flex items-center gap-2 text-slate-500">
-                <ActivitySquare size={14} />
-                <h2 className="text-sm font-semibold text-slate-200">
-                  Live execution log
-                </h2>
-              </div>
-              <div
-                ref={logRef}
-                className="h-48 space-y-1.5 overflow-y-auto rounded-md bg-black/40 p-3 font-mono text-[11px] leading-relaxed"
-              >
-                {lines.map((l, i) => (
-                  <p key={i} className="text-slate-400">
-                    <span className="text-[#2FE6A6]/70">[{l.time}]</span>{" "}
-                    <span className="text-slate-300">{l.text}</span>
-                  </p>
-                ))}
-              </div>
-            </section>
-          </div>
-        </div>
-      </main>
+      <span
+        style={{
+          background: 'rgba(90,200,250,0.12)',
+          color: '#5AC8FA',
+          padding: '6px 14px',
+          borderRadius: 20,
+          fontSize: 12,
+          fontWeight: 600,
+        }}
+      >
+        ● Active
+      </span>
     </div>
+  </div>
+</div>
+        {/* KPI cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 32 }}>
+          {[
+            { label: 'Total Equity',   value: `${CURRENCY}${fmtN(totalEquity)}`,              color: '#E6EAF2' },
+            { label: 'Session P&L',    value: `${totalPnl >= 0 ? '+' : ''}${CURRENCY}${fmtN(Math.abs(totalPnl))}`, color: totalPnl >= 0 ? '#00FF88' : '#FF3B30' },
+            { label: 'Total Trades',   value: String(trades.length),                           color: '#E6EAF2' },
+            { label: 'Open Positions', value: String(positions.length),                        color: '#5AC8FA' },
+            { label: 'Active Algos',   value: String(status?.engines?.length ?? 0),            color: '#00FF88' },
+          ].map(k => (
+            <div key={k.label} style={{
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 12, padding: '20px 24px',
+            }}>
+              <p style={{ fontSize: 11, color: '#8A93A8', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }}>{k.label}</p>
+              <p style={{ fontSize: 24, fontWeight: 700, fontFamily: 'monospace', color: k.color }}>{k.value}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Running engines */}
+        {status?.engines?.length > 0 && (
+          <div style={{ marginBottom: 24, padding: 16, background: 'rgba(0,255,136,0.05)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: 12 }}>
+            <p style={{ fontSize: 12, color: '#8A93A8', marginBottom: 8 }}>RUNNING ALGORITHMS</p>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              {status.engines.map((e: any) => (
+                <span key={`${e.symbol}_${e.strategy}`} style={{
+                  background: 'rgba(0,255,136,0.1)', color: '#00FF88',
+                  padding: '4px 12px', borderRadius: 20, fontSize: 13, fontWeight: 600,
+                }}>
+                  ● {e.strategy} on {e.symbol}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Open Positions */}
+        <div style={{ marginBottom: 24 }}>
+          <p style={{ fontSize: 12, color: '#8A93A8', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>Open Positions</p>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <thead>
+                <tr style={{ background: 'rgba(255,255,255,0.03)' }}>
+                  {['Symbol','Side','Qty','Entry','Current','P&L'].map(h => (
+                    <th key={h} style={{ padding: '12px 16px', textAlign: 'left', color: '#8A93A8', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {positions.length === 0 ? (
+                  <tr><td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#5A6A8A' }}>
+                    No open positions
+                  </td></tr>
+                ) : positions.map((p: any, i: number) => (
+                  <tr key={i} style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                    <td style={{ padding: '12px 16px', fontWeight: 600 }}>{p.symbol}</td>
+                    <td style={{ padding: '12px 16px', color: p.side === 'BUY' ? '#00FF88' : '#FF3B30', fontWeight: 600 }}>{p.side}</td>
+                    <td style={{ padding: '12px 16px', fontFamily: 'monospace' }}>{p.qty}</td>
+                    <td style={{ padding: '12px 16px', fontFamily: 'monospace' }}>{CURRENCY}{fmtN(p.avgEntry || p.entry_price || 0)}</td>
+                    <td style={{ padding: '12px 16px', fontFamily: 'monospace' }}>{CURRENCY}{fmtN(p.currentPrice || p.current_price || 0)}</td>
+                    <td style={{ padding: '12px 16px', fontFamily: 'monospace', color: (p.pnl || 0) >= 0 ? '#00FF88' : '#FF3B30', fontWeight: 600 }}>
+                      {(p.pnl || 0) >= 0 ? '+' : ''}{CURRENCY}{fmtN(Math.abs(p.pnl || 0))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Trade History */}
+        <div>
+          <p style={{ fontSize: 12, color: '#8A93A8', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>
+            Trade History ({trades.length} trades)
+          </p>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <thead>
+                <tr style={{ background: 'rgba(255,255,255,0.03)' }}>
+                  {['Time','Symbol','Side','Qty','Price','Total'].map(h => (
+                    <th key={h} style={{ padding: '12px 16px', textAlign: 'left', color: '#8A93A8', fontSize: 11, textTransform: 'uppercase' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {trades.length === 0 ? (
+                  <tr><td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#5A6A8A' }}>
+                    No trades yet this session
+                  </td></tr>
+                ) : [...trades].reverse().map((t: any, i: number) => (
+                  <tr key={i} style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                    <td style={{ padding: '12px 16px', fontFamily: 'monospace', color: '#8A93A8', fontSize: 12 }}>{t.time}</td>
+                    <td style={{ padding: '12px 16px', fontWeight: 600 }}>{t.symbol}</td>
+                    <td style={{ padding: '12px 16px', color: t.side === 'BUY' ? '#00FF88' : '#FF3B30', fontWeight: 600 }}>{t.side}</td>
+                    <td style={{ padding: '12px 16px', fontFamily: 'monospace' }}>{t.qty}</td>
+                    <td style={{ padding: '12px 16px', fontFamily: 'monospace' }}>{CURRENCY}{fmtN(t.price)}</td>
+                    <td style={{ padding: '12px 16px', fontFamily: 'monospace' }}>{CURRENCY}{fmtN(t.price * t.qty)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </main>
   );
 }
