@@ -7,6 +7,7 @@ import BacktestStats   from "@/components/BacktestStats";
 import TradeHistory    from "@/components/TradeHistory";
 import { runBacktest } from "@/lib/liveApi";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import styles from '@/components/Navbar.module.css';
 
 interface BacktestResult {
   final_value:    number;
@@ -45,7 +46,7 @@ export default function BacktestPage() {
     period:          string;
     interval:        string;
     initial_balance: number;
-  }) => {
+    }) => {
     setLoading(true);
     setError("");
 
@@ -78,6 +79,15 @@ export default function BacktestPage() {
           <div style={{ position: 'relative', zIndex: 1 }}>
 
       <div className="mb-6 flex justify-between items-center">
+        <a href="#" className={styles.logo}>
+                <span className={styles.logoMark}>
+                  <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                    <path d="M2 16L8 8L12 12L16 6L20 10" stroke="#00FF88" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <circle cx="20" cy="10" r="2" fill="#00FF88"/>
+                  </svg>
+                </span>
+                <span className={styles.logoText}>Penn</span>
+              </a>
         <div>
           <h1 className="text-3xl font-bold">Backtest Terminal</h1>
           <p className="text-zinc-400 mt-1">Test and evaluate trading strategies</p>

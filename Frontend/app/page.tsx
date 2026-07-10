@@ -6,8 +6,9 @@ import CTA from "../components/CTA";
 import Footer from "../components/Footer";
 
 import Ticker from '@/components/Ticker';
-import styles from './LiveTrading/page.module.css';
-import StatCounter from '@/components/StatCounter';
+import MarketOverview from "../components/marketoverview";
+import TopMovers from "../components/topmovers";
+import FinancialNews from "@/components/financialnews";
 
 
 export default function Home() {
@@ -19,15 +20,12 @@ export default function Home() {
       {/* TICKER */}
             <Ticker />
       
-            {/* STATS */}
-            <section className={styles.statsSection}>
-              <div className={styles.container}>
-                <StatCounter />
-              </div>
-            </section>
 
 
       <Hero />
+      <MarketOverview />
+      <TopMovers />
+      <FinancialNews />
       <Features />
       <Stats />
       <CTA />

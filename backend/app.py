@@ -26,6 +26,8 @@ from routes.algo import algo_bp
 from routes.backtest import backtest_bp
 from routes.recommend import recommend_bp
 from routes.symbol_search import search_bp
+from routes.homepage import homepage_bp
+
 
 # Legacy backtest imports
 from data_fetcher import fetch_from_yf
@@ -105,6 +107,13 @@ def create_app():
         app.register_blueprint(search_bp)
     except Exception as e:
         print(f"[app.py] Failed to register search_bp: {e}")
+
+    try:
+        app.register_blueprint(homepage_bp)
+    except Exception as e:
+        print(f"[app.py] Failed to load homepage: {e}")
+
+
 
     @app.route("/backtest", methods=["POST"])
     @jwt_required()

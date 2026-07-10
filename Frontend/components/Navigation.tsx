@@ -26,14 +26,14 @@ export default function Navbar() {
         </a>
 
         <ul className={styles.links}>
+          <a href="/" className={styles.btnGhost}>Home</a>
           <a href="/Backtest" className={styles.btnGhost}>Backtest</a>
           <a href="/About" className={styles.btnGhost}>About</a>
         </ul>
 
 
         <div className={styles.actions}>
-          <a href="#" className={styles.btnGhost}>Sign In</a>
-          <a href="#" className={styles.btnGhost}>Start Free Trial</a>
+          <a href="/login" className={styles.btnGhost}>Start Free Trial</a>
           <a href="/Profile" className={styles.btnGhost}>My Profile</a>
         </div>
 

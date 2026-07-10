@@ -126,8 +126,8 @@ const STRATEGIES: Strategy[] = [
 const PLANS: Plan[] = [
   {
     name: 'Starter',
-    price: '$49',
-    period: '/mo',
+    price: '2499/-',
+    period: '      /mo',
     desc: 'For independent traders exploring algo execution.',
     features: ['5 live strategies', '5 years backtest data', '1M API calls/month', 'Standard execution', 'Community support'],
     cta: 'Start Free Trial',
@@ -135,8 +135,8 @@ const PLANS: Plan[] = [
   },
   {
     name: 'Pro',
-    price: '$249',
-    period: '/mo',
+    price: '5000/-',
+    period: '      /mo',
     desc: 'For serious traders who need institutional-grade tools.',
     features: ['Unlimited strategies', '15 years tick data', 'Unlimited API calls', 'Co-location access', 'Priority support', 'Risk engine + VaR', 'Custom indicators'],
     cta: 'Start Free Trial',
@@ -228,12 +228,7 @@ export default function Home() {
       {/* TICKER */}
       <Ticker />
 
-      {/* STATS */}
-      <section className={styles.statsSection}>
-        <div className={styles.container}>
-          <StatCounter />
-        </div>
-      </section>
+
 
       {/* FEATURES */}
       <section className={styles.section} id="strategies">
@@ -323,9 +318,20 @@ export default function Home() {
                   'One-line paper trading mode',
                 ].map(item => <li key={item}>{item}</li>)}
               </ul>
-              <a href="#" className={styles.ctaPrimary} style={{ display: 'inline-block', marginTop: '2rem' }}>
-                View Documentation
+              <a href="/docs/PENN.pdf" 
+                  download="PENN_Documentation.pdf" 
+                  className={styles.ctaPrimary} 
+                  style={{ display: 'inline-block', marginTop: '2rem' }}>
+                  Download Documentation
               </a>
+              <a href="/docs/PENN.pdf" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className={styles.ctaSecondary} 
+                  style={{ display: 'inline-block', marginTop: '2rem' }}>
+                  View Documentation
+              </a>
+
             </div>
             <div className={styles.codeBlock}>
               <div className={styles.codeHeader}>
@@ -423,7 +429,7 @@ await strategy.deploy()`}</code></pre>
               Join 12,400+ strategies running on Penn today. 14-day free trial, no credit card required.
             </p>
             <div className={styles.ctaBannerActions}>
-              <a href="#" className={styles.ctaPrimary}>Start Free Trial</a>
+              <a href="/login" className={styles.ctaPrimary}>Start Free Trial</a>
               <a href="#" className={styles.ctaGhost}>Talk to an Engineer</a>
             </div>
           </div>

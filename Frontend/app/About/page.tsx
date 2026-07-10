@@ -189,9 +189,9 @@ export default function AboutPage() {
             and seamless execution — all in one platform.
           </p>
 
-          <button className="mt-10 px-8 py-4 bg-white text-black rounded-full font-semibold hover:bg-gray-200 transition duration-300">
+          <a href="/login"><button className="mt-10 px-8 py-4 bg-white text-black rounded-full font-semibold hover:bg-gray-200 transition duration-300">
             Get Started
-          </button>
+          </button></a>
         </div>
       </section>
 

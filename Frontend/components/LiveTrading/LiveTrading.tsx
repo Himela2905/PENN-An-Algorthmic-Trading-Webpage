@@ -3,6 +3,7 @@ import {
   AlertTriangle, ArrowDownRight, ArrowUpRight, Bot,
   ChevronDown, Search, ShieldCheck, Star, Wallet, X,
 } from "lucide-react";
+import styles from '@/components/Navbar.module.css';
 
 /* ── Design tokens ──────────────────────────────────────────────────────── */
 const COLOR = {
@@ -640,16 +641,17 @@ export default function TradingDashboard() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between gap-4">
             <div className="flex items-center gap-7 min-w-0">
-              <div className="flex items-center gap-2.5 shrink-0">
-                <div className="h-8 w-8 rounded-md border flex items-center justify-center font-mono text-[13px] font-bold"
-                  style={{ borderColor: COLOR.border, backgroundColor: COLOR.surfaceRaised, color: accent }}>M</div>
-                <div className="hidden sm:block leading-tight">
-                  <p className="font-semibold text-[14px] tracking-tight">Penn</p>
-                  <p className="text-[10px] uppercase tracking-[0.12em]" style={{ color: COLOR.textFaint }}>Algo Markets Terminal</p>
-                </div>
-              </div>
+              <a href="#" className={styles.logo}>
+                <span className={styles.logoMark}>
+                  <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                    <path d="M2 16L8 8L12 12L16 6L20 10" stroke="#00FF88" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <circle cx="20" cy="10" r="2" fill="#00FF88"/>
+                  </svg>
+                </span>
+                <span className={styles.logoText}>Penn</span>
+              </a>
               <nav className="hidden lg:flex items-center gap-6 text-[13px]">
-                {["Dashboard","Markets","Algorithms","History"].map((item, i) => (
+                {["Dashboard"].map((item, i) => (
                   <a key={item} className="pb-[19px]" style={{
                     color: i === 0 ? COLOR.text : COLOR.textMuted,
                     ...(i === 0 ? { borderBottom: `2px solid ${accent}` } : {}),
