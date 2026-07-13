@@ -4,19 +4,19 @@ A full-stack algorithmic trading web platform built for NSE and global markets. 
 
 ---
 
-## ✨ Features
+##  Features
 
-- 📈 Backtesting with 21 trading strategies
-- 🤖 ML-based strategy recommendation (Random Forest)
-- 💹 Real-time paper trading terminal
-- 🔍 Company name & symbol search
-- 🔐 JWT Authentication
-- 📊 Performance metrics (Return, Win Rate, Sharpe Ratio, Drawdown)
-- ⚡ WebSocket live price updates
+-  Backtesting with 21 trading strategies
+-  ML-based strategy recommendation (Random Forest)
+-  Real-time paper trading terminal
+-  Company name & symbol search
+-  JWT Authentication
+-  Performance metrics (Return, Win Rate, Sharpe Ratio, Drawdown)
+-  WebSocket live price updates
 
 ---
 
-## 🛠 Tech Stack
+##  Tech Stack
 
 **Frontend**
 - Next.js
@@ -33,7 +33,7 @@ A full-stack algorithmic trading web platform built for NSE and global markets. 
 
 ---
 
-## 📂 Project Structure
+##  Project Structure
 
 ```
 backend/
@@ -51,7 +51,7 @@ frontend/
 
 ---
 
-## 🚀 Setup
+##  Setup
 
 ### Backend
 
@@ -72,7 +72,7 @@ npm run dev
 
 ---
 
-## 🌐 Application
+##  Application
 
 | Page | URL |
 |------|------|
@@ -85,7 +85,7 @@ npm run dev
 
 ---
 
-## 📡 Main APIs
+##  Main APIs
 
 | Endpoint | Purpose |
 |----------|---------|
@@ -100,7 +100,7 @@ npm run dev
 
 ---
 
-## 📊 Trading Strategies
+##  Trading Strategies
 
 The platform supports **21 technical trading strategies**, including:
 
@@ -120,7 +120,7 @@ The platform supports **21 technical trading strategies**, including:
 
 ---
 
-## 🤖 Machine Learning
+##  Machine Learning
 
 - Random Forest Classifier
 - 195 training samples
@@ -130,7 +130,7 @@ The platform supports **21 technical trading strategies**, including:
 
 ---
 
-## ⚠️ Limitations
+##  Limitations
 
 - Paper trading only (no real money execution)
 - Live market data depends on Yahoo Finance
@@ -138,6 +138,6 @@ The platform supports **21 technical trading strategies**, including:
 
 ---
 
-## 📄 License
+##  License
 
 Developed as a Final Year B.Tech Project for academic purposes.
