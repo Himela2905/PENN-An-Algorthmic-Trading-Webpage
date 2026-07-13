@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Navbar from '@/components/Navigation';
 import { getRecommendation, getRecommendationML } from '@/lib/liveApi';
+import SymbolSearchInput from '@/components/SymbolSearchInput';
 
 interface StrategyResult {
   strategy: string;
@@ -121,19 +122,22 @@ export default function RecommendPage() {
               flexWrap: 'wrap', justifyContent: 'center',
             }}
           >
-            <input
-              value={symbol}
-              onChange={(e) => setSymbol(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}
-              placeholder="e.g. RELIANCE.NS or TSLA"
-              style={{
-                flex: '1 1 260px', padding: '14px 18px', borderRadius: 10,
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                color: '#E6EAF2', fontSize: 15, fontFamily: 'monospace',
-                outline: 'none',
-              }}
-            />
+            <SymbolSearchInput
+  value={symbol}
+  onChange={setSymbol}
+  placeholder="e.g. RELIANCE.NS or TSLA"
+  inputStyle={{
+    flex:       '1 1 260px',
+    padding:    '14px 18px',
+    borderRadius: 10,
+    background: 'rgba(255,255,255,0.04)',
+    border:     '1px solid rgba(255,255,255,0.1)',
+    color:      '#E6EAF2',
+    fontSize:   15,
+    fontFamily: 'monospace',
+    outline:    'none',
+  }}
+/>
             <button
               onClick={handleAnalyze}
               disabled={loading || !symbol.trim()}

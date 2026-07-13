@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify
 import yfinance as yf
 from services.news_service import get_market_news
+import math
 
 homepage_bp = Blueprint("homepage", __name__)
 
@@ -17,7 +18,7 @@ INDICES = {
 def get_index_data(symbol):
     try:
         ticker = yf.Ticker(symbol)
-        hist = ticker.history(period="2d")
+        hist = ticker.history(period="5d")
 
         if len(hist) < 2:
             return None
@@ -93,13 +94,19 @@ def get_top_movers():
 
         try:
 
-            hist = yf.Ticker(symbol).history(period="2d")
+            hist = yf.Ticker(symbol).history(period="5d")
+           
 
             if len(hist) < 2:
                 continue
 
-            previous = float(hist["Close"].iloc[-2])
-            current = float(hist["Close"].iloc[-1])
+            close = hist["Close"].dropna()
+
+            if len(close) < 2:
+                continue
+
+            previous = float(close.iloc[-2])
+            current = float(close.iloc[-1])
 
             change = current - previous
             percent = (change / previous) * 100

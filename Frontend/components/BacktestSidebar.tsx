@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-/*import SymbolSearchInput from './SymbolSearchInput';*/
+import SymbolSearchInput from './SymbolSearchInput';
 
 interface Props {
   onRun: (payload: {
@@ -98,13 +98,16 @@ style=    {{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,2
       {/* Symbol */}
       <div className="mb-4">
         <label className="text-sm text-zinc-400 block mb-2">Symbol</label>
-        <input
-          type="text"
-          placeholder="e.g. TCS.NS"
+        <SymbolSearchInput
           value={symbol}
-          onChange={(e) => setSymbol(e.target.value)}
-          className="w-full rounded-xl px-4 py-3 outline-none"
-style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#E6EAF2' }}
+          onChange={(val) => setSymbol(val)}
+          placeholder="ex. TCS.NS or TSLA"
+          inputClassName="w-full rounded-xl px-4 py-3 outline-none"
+          inputStyle={{
+            background: 'rgba(255,255,255,0.04)',
+            border:     '1px solid rgba(255,255,255,0.1)',
+            color:      '#E6EAF2',
+          }}
         />
       </div>
 

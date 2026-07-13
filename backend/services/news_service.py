@@ -1,6 +1,9 @@
+import os
+
 import requests
 from dotenv import load_dotenv
-FINNHUB_API_KEY = load_dotenv.getenv("FINNHUB_API_KEY")
+load_dotenv()
+FINNHUB_API_KEY = os.getenv("FINNHUB_API_KEY")
 
 def get_market_news():
 
